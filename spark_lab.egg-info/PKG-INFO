@@ -1,0 +1,12 @@
+Metadata-Version: 2.4
+Name: spark-lab
+Version: 0.1.0
+Summary: Job queue, nightly runner and reports for an always-on DGX Spark
+Author: Jehanzeb Ali
+License: MIT
+Requires-Python: >=3.10
+License-File: LICENSE
+Provides-Extra: dev
+Requires-Dist: pytest>=8; extra == "dev"
+Requires-Dist: ruff>=0.6; extra == "dev"
+Dynamic: license-file

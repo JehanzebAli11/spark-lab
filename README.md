@@ -25,18 +25,22 @@ pull requests ──► main ──► 23:00 nightly.sh ──► queue ──�
   each job's own markdown report, failures, disk and GPU. Refuses to quote anything
   inside `eval/locked/`.
 - **systemd units** for the worker, the 23:00 nightly timer (catches up after a missed
-  night) and the vLLM teacher model.
+  night) and the vLLM teacher model (Gemma 4 31B on localhost:8000).
 
 ## Quickstart on the Spark
 
 ```bash
 mkdir -p ~/lab && cd ~/lab
 git clone git@github.com:JehanzebAli11/spark-lab.git && cd spark-lab
-bash scripts/setup_spark.sh            # checks only; lists the sudo steps for you to run
-bash scripts/setup_spark.sh --apply    # installs the user services
-python3 -m lab notify "hello"          # test the phone alert
-python3 -m lab enqueue jobs/nightly.d/example-smoke.json && python3 -m lab worker --once
+bash scripts/bootstrap.sh               # guided first-time setup; safe to rerun
 ```
+
+`bootstrap.sh` never runs sudo. It prints each root step, waits while you run it, then writes
+`~/.config/spark-lab.env` (it asks only for the ntfy topic and HF read token), pulls the images,
+downloads Gemma 4 31B, installs the user services, waits for the teacher, runs a Roman Urdu smoke
+test, queues the smoke job and prints a checklist. Steps, image tags and sources are in
+[`docs/bootstrap.md`](docs/bootstrap.md). For a quick read-only health check later, run
+`bash scripts/setup_spark.sh`.
 
 Project repos sit next to this one (`~/lab/scam-radar`, …) and jobs reach them with
 `"cwd": "../scam-radar"`. See `jobs/examples/` for a training job that resumes from checkpoints and an eval job whose markdown lands in the nightly report.
@@ -69,6 +73,7 @@ quotes it.
 | `python3 -m lab report [--date YYYY-MM-DD]` | Write `reports/<date>.md` |
 | `python3 -m lab prune runs/ --keep 3 [--dry-run]` | Keep the newest checkpoints per run |
 | `python3 -m lab notify "text"` | Test phone alerts |
+| `python3 -m lab teacher-smoke` | Ask the vLLM teacher 3 Roman Urdu prompts |
 
 ## Ground rules
 
@@ -80,7 +85,7 @@ in [`CLAUDE.md`](CLAUDE.md) and [`AGENTS.md`](AGENTS.md).
 ## Development
 
 ```bash
-pip install -e '.[dev]' && ruff check . && pytest -q
+pip install -e '.[dev]' && ruff check . && shellcheck scripts/*.sh jobs/nightly.sh publish/publish.sh && pytest -q
 ```
 
 Standard library only at runtime, Python 3.10+. MIT licensed.

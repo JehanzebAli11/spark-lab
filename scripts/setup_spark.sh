@@ -3,6 +3,10 @@
 #   bash scripts/setup_spark.sh            # checks only, changes nothing
 #   bash scripts/setup_spark.sh --apply    # also installs user services (no sudo)
 # Steps that need sudo are printed for you to run yourself; this script never calls sudo.
+# For the full guided first-time setup (env file, images, teacher, smoke tests) use
+# scripts/bootstrap.sh instead; this script stays as a quick read-only health check.
+# ok/todo always succeed, so `check && ok || todo` is a safe if/else here.
+# shellcheck disable=SC2015
 set -uo pipefail
 
 APPLY=0; [ "${1:-}" = "--apply" ] && APPLY=1
@@ -36,7 +40,7 @@ ENV="$HOME/.config/spark-lab.env"
 if [ -f "$ENV" ]; then ok "$ENV"
 else
   todo "cp systemd/spark-lab.env.example $ENV && chmod 600 $ENV, then edit it"
-  [ $APPLY = 1 ] && mkdir -p "$HOME/.config" && cp "$LAB/systemd/spark-lab.env.example" "$ENV" && chmod 600 "$ENV" && ok "copied example env (edit NTFY_TOPIC and VLLM_IMAGE)"
+  [ $APPLY = 1 ] && mkdir -p "$HOME/.config" && cp "$LAB/systemd/spark-lab.env.example" "$ENV" && chmod 600 "$ENV" && ok "copied example env (or run scripts/bootstrap.sh to fill it in)"
 fi
 command -v hf >/dev/null && ok "hf CLI" || todo "pip install -U huggingface_hub   # then: hf auth login (read token)"
 
@@ -48,7 +52,7 @@ if [ $APPLY = 1 ]; then
   systemctl --user daemon-reload
   systemctl --user enable --now lab-nightly.timer && ok "lab-nightly.timer enabled (23:00)"
   systemctl --user enable --now lab-worker.service && ok "lab-worker.service running"
-  todo "after setting VLLM_IMAGE in $ENV: systemctl --user enable --now vllm-teacher.service"
+  todo "bash scripts/bootstrap.sh downloads the weights and starts vllm-teacher.service"
 else
   for u in lab-worker.service lab-nightly.timer vllm-teacher.service; do
     systemctl --user is-enabled "$u" >/dev/null 2>&1 && ok "$u enabled" || todo "$u not installed (rerun with --apply)"

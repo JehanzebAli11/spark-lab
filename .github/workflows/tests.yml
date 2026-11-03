@@ -13,5 +13,5 @@ jobs:
           python-version: ${{ matrix.python }}
       - run: pip install -e '.[dev]'
       - run: ruff check .
-      - run: bash -n jobs/nightly.sh scripts/setup_spark.sh publish/publish.sh
+      - run: shellcheck scripts/*.sh jobs/nightly.sh publish/publish.sh
       - run: pytest -q
