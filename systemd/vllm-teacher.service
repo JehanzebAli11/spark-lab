@@ -1,0 +1,24 @@
+# Serves the teacher model as an OpenAI-compatible API on localhost:8000.
+# Uses NVIDIA's vLLM container for DGX Spark; check the image tag against the
+# current "vLLM on DGX Spark" playbook (build.nvidia.com/spark) before enabling.
+# Stop it (systemctl --user stop vllm-teacher) before large training runs to free memory.
+[Unit]
+Description=Gemma 4 31B teacher on vLLM (localhost:8000)
+After=network-online.target docker.service
+
+[Service]
+Type=simple
+EnvironmentFile=-%h/.config/spark-lab.env
+ExecStartPre=-/usr/bin/docker rm -f vllm-teacher
+ExecStart=/usr/bin/docker run --rm --name vllm-teacher --gpus all --ipc=host \
+  -p 127.0.0.1:8000:8000 \
+  -v %h/.cache/huggingface:/root/.cache/huggingface \
+  -e HF_TOKEN \
+  ${VLLM_IMAGE} \
+  vllm serve ${TEACHER_MODEL} --max-model-len 8192 --gpu-memory-utilization ${VLLM_GPU_UTIL}
+ExecStop=/usr/bin/docker stop vllm-teacher
+Restart=on-failure
+RestartSec=60
+
+[Install]
+WantedBy=default.target

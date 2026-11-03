@@ -1,0 +1,10 @@
+[Unit]
+Description=spark-lab nightly run (pull, queue, report)
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/lab/spark-lab
+EnvironmentFile=-%h/.config/spark-lab.env
+ExecStart=/usr/bin/env bash jobs/nightly.sh
+TimeoutStartSec=14h

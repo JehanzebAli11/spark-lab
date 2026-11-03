@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+.venv/
+jobs/queue/
+jobs/running/
+jobs/done/
+jobs/failed/
+jobs/.worker.lock
+logs/
+runs/
+data/
+eval/locked/*
+!eval/locked/README.md
+*.safetensors
+*.gguf
+*.litertlm
+.env

@@ -1,0 +1,21 @@
+# Always-on job worker. Install as a user service:
+#   mkdir -p ~/.config/systemd/user && cp systemd/*.service systemd/*.timer ~/.config/systemd/user/
+#   loginctl enable-linger "$USER"     # keep user services running without a login (needs sudo once)
+#   systemctl --user daemon-reload && systemctl --user enable --now lab-worker.service
+[Unit]
+Description=spark-lab job worker
+After=network-online.target vllm-teacher.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/lab/spark-lab
+EnvironmentFile=-%h/.config/spark-lab.env
+ExecStart=/usr/bin/env python3 -m lab worker
+Restart=always
+RestartSec=30
+# Training can take most of the memory; let the kernel prefer killing other things.
+OOMScoreAdjust=-200
+
+[Install]
+WantedBy=default.target

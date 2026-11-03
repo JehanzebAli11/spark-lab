@@ -1,0 +1,10 @@
+[Unit]
+Description=Run spark-lab nightly at 23:00 local time
+
+[Timer]
+OnCalendar=*-*-* 23:00:00
+# Run a missed night on boot (e.g. after a power cut).
+Persistent=true
+
+[Install]
+WantedBy=timers.target

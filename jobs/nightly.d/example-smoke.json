@@ -1,0 +1,8 @@
+{
+  "name": "smoke-python",
+  "cmd": ["python3", "-c", "import platform; print('spark-lab alive on', platform.machine())"],
+  "priority": 90,
+  "timeout_min": 5,
+  "retries": 0,
+  "notify": false
+}
