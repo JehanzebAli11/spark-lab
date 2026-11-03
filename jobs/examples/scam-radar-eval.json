@@ -1,0 +1,13 @@
+{
+  "name": "scam-radar-eval-v1",
+  "cmd": ["python3", "-m", "scamradar", "eval",
+          "--predictions", "runs/v1/predictions.jsonl",
+          "--baseline", "runs/tfidf/predictions.jsonl",
+          "--json", "runs/v1/eval.json",
+          "--markdown", "runs/v1/eval.md"],
+  "cwd": "../scam-radar",
+  "priority": 25,
+  "timeout_min": 30,
+  "retries": 0,
+  "report": "runs/v1/eval.md"
+}

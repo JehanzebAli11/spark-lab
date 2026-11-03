@@ -39,7 +39,7 @@ python3 -m lab enqueue jobs/nightly.d/example-smoke.json && python3 -m lab worke
 ```
 
 Project repos sit next to this one (`~/lab/scam-radar`, …) and jobs reach them with
-`"cwd": "../scam-radar"`. See `jobs/examples/scam-radar-train.json`.
+`"cwd": "../scam-radar"`. See `jobs/examples/` for a training job that resumes from checkpoints and an eval job whose markdown lands in the nightly report.
 
 ## Job format
 

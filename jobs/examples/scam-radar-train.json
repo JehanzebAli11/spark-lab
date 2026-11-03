@@ -6,6 +6,5 @@
   "timeout_min": 240,
   "retries": 2,
   "resume_dir": "runs/v1",
-  "report": "runs/v1/eval.md",
   "env": {"TOKENIZERS_PARALLELISM": "false"}
 }
