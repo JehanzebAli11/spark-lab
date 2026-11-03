@@ -3,8 +3,8 @@
 # coding agents must never run this (see CLAUDE.md). Uses HF_WRITE_TOKEN, kept out of
 # spark-lab.env so services and agents never see it.
 #
-#   HF_WRITE_TOKEN=hf_... bash publish/publish.sh model ClankerJZ/scam-radar-270m ../scam-radar/runs/v1/final
-#   HF_WRITE_TOKEN=hf_... bash publish/publish.sh dataset ClankerJZ/roman-urdu-scam-bench ./release
+#   HF_WRITE_TOKEN=hf_... bash publish/publish.sh model JehanzebAli11/scam-radar-270m ../scam-radar/runs/v1/final
+#   HF_WRITE_TOKEN=hf_... bash publish/publish.sh dataset JehanzebAli11/roman-urdu-scam-bench ./release
 set -euo pipefail
 
 KIND="${1:?model|dataset}"; REPO="${2:?owner/name}"; DIR="${3:?folder to upload}"

@@ -31,7 +31,7 @@ pull requests ──► main ──► 23:00 nightly.sh ──► queue ──�
 
 ```bash
 mkdir -p ~/lab && cd ~/lab
-git clone git@github.com:ClankerJZ/spark-lab.git && cd spark-lab
+git clone git@github.com:JehanzebAli11/spark-lab.git && cd spark-lab
 bash scripts/setup_spark.sh            # checks only; lists the sudo steps for you to run
 bash scripts/setup_spark.sh --apply    # installs the user services
 python3 -m lab notify "hello"          # test the phone alert
