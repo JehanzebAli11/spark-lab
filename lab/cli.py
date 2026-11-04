@@ -8,7 +8,7 @@ import sys
 from datetime import date, datetime
 from pathlib import Path
 
-from . import checkpoints, report
+from . import checkpoints, report, teacher
 from .notify import notify
 from .paths import lab_paths
 from .queue import JobError, Queue, disk_free_gb, work
@@ -54,6 +54,11 @@ def main(argv: list[str] | None = None) -> int:
     n = sub.add_parser("notify", help="send a test notification")
     n.add_argument("message", nargs="?", default="hello from the Spark")
 
+    t = sub.add_parser("teacher-smoke", help="ask the vLLM teacher three Roman Urdu prompts")
+    t.add_argument("--base-url", help=f"OpenAI-compatible base URL (default TEACHER_URL or {teacher.DEFAULT_BASE_URL})")
+    t.add_argument("--model", help="model id (default TEACHER_MODEL or the first served model)")
+    t.add_argument("--timeout", type=float, default=300, help="seconds per request")
+
     a = ap.parse_args(argv)
     paths = lab_paths(a.root)
 
@@ -94,6 +99,9 @@ def main(argv: list[str] | None = None) -> int:
         for p in removed:
             print(("would remove " if a.dry_run else "removed ") + str(p))
         return 0
+
+    if a.cmd == "teacher-smoke":
+        return teacher.main(a.base_url, a.model, a.timeout)
 
     if a.cmd == "notify":
         return 0 if notify("spark-lab test", a.message) else 1
