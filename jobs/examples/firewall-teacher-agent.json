@@ -1,0 +1,8 @@
+{
+  "name": "firewall-teacher-agent",
+  "cmd": ["python3", "-m", "guard.firewall", "--out", "runs/firewall/teacher-none", "--agent", "chat", "--agent-url", "http://localhost:8000/v1", "--agent-model", "google/gemma-4-31B-it", "--guard", "none", "--per-task", "40"],
+  "priority": 50,
+  "timeout_min": 240,
+  "retries": 2,
+  "report": "runs/firewall/teacher-none/report.md"
+}

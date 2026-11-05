@@ -11,7 +11,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
-      - run: pip install -e '.[dev]'
+      - run: pip install -e '.[dev,security]' && python -m playwright install --with-deps chromium
       - run: ruff check .
       - run: bash -n jobs/nightly.sh scripts/setup_spark.sh publish/publish.sh
+      - run: node --check extension/core.js && node --check extension/content.js && node --check extension/background.js && node --check extension/options.js
       - run: pytest -q

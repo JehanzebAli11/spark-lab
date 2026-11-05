@@ -1,0 +1,8 @@
+{
+  "name": "firewall-rules",
+  "cmd": ["python3", "-m", "guard.firewall", "--out", "runs/firewall/scripted-rules", "--agent", "scripted", "--guard", "rules", "--per-task", "200"],
+  "priority": 45,
+  "timeout_min": 20,
+  "retries": 1,
+  "report": "runs/firewall/scripted-rules/report.md"
+}
