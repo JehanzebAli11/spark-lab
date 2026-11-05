@@ -95,6 +95,24 @@ def build_report(
                 lines.append(f"_expected report not found: `{j['report']}`_")
             lines.append("")
 
+    healed = [j for j in failed + done if j.get("heal_log")]
+    if healed:
+        n_fixed = sum(1 for j in done if j.get("heal_log"))
+        n_inc = sum(1 for j in failed + done if j.get("incident"))
+        lines += ["", "## Self-healing", "",
+                  f"{len(healed)} job(s) failed at least once: {n_fixed} recovered, {n_inc} incident(s) written.", "",
+                  "| Job | Attempt | Diagnosis | Confidence | Action | Detail |",
+                  "| --- | --- | --- | --- | --- | --- |"]
+        for j in healed:
+            for h in j["heal_log"]:
+                detail = (h.get("detail") or "-").replace("|", "/")
+                lines.append(f"| {j['name']} | {h.get('attempt')} | {h.get('class')} ({h.get('source', '?')}) | "
+                             f"{h.get('confidence', 0):.2f} | {h.get('action')} | {detail} |")
+        incidents = [j for j in failed + done if j.get("incident")]
+        if incidents:
+            lines += ["", "Incidents:", ""]
+            lines += [f"- `{j['incident']}` ({j['heal_log'][-1].get('class')})" for j in incidents]
+
     if failed:
         lines += ["", "## Failures", ""]
         for j in failed:

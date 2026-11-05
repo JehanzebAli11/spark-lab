@@ -1,0 +1,21 @@
+{
+  "name": "chaos-gpu-illegal-access-1",
+  "cmd": [
+    "../.venv-ml/bin/python",
+    "-m",
+    "labml.chaos_gpu",
+    "--fault",
+    "illegal_access",
+    "--seed",
+    "1"
+  ],
+  "priority": 85,
+  "timeout_min": 5,
+  "retries": 0,
+  "heal": false,
+  "notify": false,
+  "env": {
+    "LAB_CHAOS_LABEL": "cuda_error",
+    "LAB_CHAOS_FAULT": "gpu.illegal_access"
+  }
+}

@@ -48,9 +48,10 @@ if [ $APPLY = 1 ]; then
   systemctl --user daemon-reload
   systemctl --user enable --now lab-nightly.timer && ok "lab-nightly.timer enabled (23:00)"
   systemctl --user enable --now lab-worker.service && ok "lab-worker.service running"
+  systemctl --user enable --now lab-triage.service && ok "lab-triage.service on 127.0.0.1:8040"
   todo "after setting VLLM_IMAGE in $ENV: systemctl --user enable --now vllm-teacher.service"
 else
-  for u in lab-worker.service lab-nightly.timer vllm-teacher.service; do
+  for u in lab-worker.service lab-nightly.timer lab-triage.service vllm-teacher.service; do
     systemctl --user is-enabled "$u" >/dev/null 2>&1 && ok "$u enabled" || todo "$u not installed (rerun with --apply)"
   done
 fi

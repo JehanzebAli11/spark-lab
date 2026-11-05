@@ -1,0 +1,108 @@
+{
+  "by_policy": {
+    "none": {
+      "harmed_runs": 780,
+      "rescued": 10,
+      "rescue_rate": 0.0128,
+      "reruns": 780,
+      "escalated": 0,
+      "heldout_task_rescue_rate": 0.008
+    },
+    "doctor": {
+      "harmed_runs": 780,
+      "rescued": 458,
+      "rescue_rate": 0.5872,
+      "reruns": 1551,
+      "escalated": 35,
+      "heldout_task_rescue_rate": 0.52
+    },
+    "ensemble": {
+      "harmed_runs": 780,
+      "rescued": 459,
+      "rescue_rate": 0.5885,
+      "reruns": 1585,
+      "escalated": 33,
+      "heldout_task_rescue_rate": 0.524
+    },
+    "oracle": {
+      "harmed_runs": 780,
+      "rescued": 536,
+      "rescue_rate": 0.6872,
+      "reruns": 1448,
+      "escalated": 0,
+      "heldout_task_rescue_rate": 0.66
+    }
+  },
+  "by_cause": {
+    "lr_too_high": {
+      "none": "1/68",
+      "doctor": "42/68",
+      "ensemble": "45/68",
+      "oracle": "68/68"
+    },
+    "lr_too_low": {
+      "none": "1/127",
+      "doctor": "67/127",
+      "ensemble": "66/127",
+      "oracle": "119/127"
+    },
+    "no_warmup": {
+      "none": "4/29",
+      "doctor": "20/29",
+      "ensemble": "20/29",
+      "oracle": "8/29"
+    },
+    "label_noise": {
+      "none": "0/130",
+      "doctor": "0/130",
+      "ensemble": "0/130",
+      "oracle": "0/130"
+    },
+    "overfitting": {
+      "none": "2/75",
+      "doctor": "58/75",
+      "ensemble": "59/75",
+      "oracle": "61/75"
+    },
+    "train_test_leak": {
+      "none": "0/105",
+      "doctor": "82/105",
+      "ensemble": "81/105",
+      "oracle": "88/105"
+    },
+    "dead_activations": {
+      "none": "2/116",
+      "doctor": "95/116",
+      "ensemble": "95/116",
+      "oracle": "96/116"
+    },
+    "exploding_gradients": {
+      "none": "0/130",
+      "doctor": "94/130",
+      "ensemble": "93/130",
+      "oracle": "96/130"
+    }
+  },
+  "healthy": {
+    "none": {
+      "n": 130,
+      "touched": 130,
+      "hurt": 14
+    },
+    "doctor": {
+      "n": 130,
+      "touched": 8,
+      "hurt": 3
+    },
+    "ensemble": {
+      "n": 130,
+      "touched": 10,
+      "hurt": 3
+    },
+    "oracle": {
+      "n": 130,
+      "touched": 0,
+      "hurt": 0
+    }
+  }
+}

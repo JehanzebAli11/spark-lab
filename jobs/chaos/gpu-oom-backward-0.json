@@ -1,0 +1,21 @@
+{
+  "name": "chaos-gpu-oom-backward-0",
+  "cmd": [
+    "../.venv-ml/bin/python",
+    "-m",
+    "labml.chaos_gpu",
+    "--fault",
+    "oom_backward",
+    "--seed",
+    "0"
+  ],
+  "priority": 85,
+  "timeout_min": 5,
+  "retries": 0,
+  "heal": false,
+  "notify": false,
+  "env": {
+    "LAB_CHAOS_LABEL": "oom",
+    "LAB_CHAOS_FAULT": "gpu.oom_backward"
+  }
+}

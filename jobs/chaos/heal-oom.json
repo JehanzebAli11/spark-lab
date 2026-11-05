@@ -1,0 +1,20 @@
+{
+  "name": "heal-oom",
+  "cmd": [
+    "python3",
+    "-m",
+    "lab.chaos",
+    "--fault",
+    "oom.torch_cuda",
+    "--steps",
+    "400"
+  ],
+  "priority": 86,
+  "timeout_min": 5,
+  "notify": false,
+  "env": {
+    "BATCH_SIZE": "64"
+  },
+  "batch_env": "BATCH_SIZE",
+  "resume_dir": "runs/chaos/heal-oom"
+}

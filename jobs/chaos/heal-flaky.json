@@ -1,0 +1,14 @@
+{
+  "name": "heal-flaky",
+  "cmd": [
+    "python3",
+    "-m",
+    "lab.chaos",
+    "--fault",
+    "flaky.flock"
+  ],
+  "priority": 86,
+  "timeout_min": 5,
+  "notify": false,
+  "env": {}
+}

@@ -16,6 +16,9 @@ Job fields:
   env          extra environment variables
   report       markdown file (relative to cwd) the job writes; quoted in the nightly report
   notify       send phone alerts for this job (default true)
+  heal         classify failures and apply known fixes (default true; see lab/heal.py)
+  max_heals    healing retries allowed on top of `retries` (default 4)
+  batch_env    env var in `env` holding the batch size; halved on out-of-memory
 """
 
 from __future__ import annotations
@@ -34,8 +37,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .checkpoints import latest_checkpoint
+from .heal import Healer
 from .notify import notify as default_notify
 from .paths import LabPaths
+from .triage import UNKNOWN, Diagnosis
 
 _NAME = re.compile(r"^[A-Za-z0-9._-]{1,80}$")
 
@@ -61,6 +66,9 @@ class Job:
     env: dict[str, str] = field(default_factory=dict)
     report: str | None = None
     notify: bool = True
+    heal: bool = True
+    max_heals: int = 4
+    batch_env: str | None = None
     # filled in by the worker
     status: str = "queued"
     attempts: int = 0
@@ -70,6 +78,8 @@ class Job:
     finished_at: str | None = None
     log: str | None = None
     resumed_from: str | None = None
+    heal_log: list[dict] = field(default_factory=list)
+    incident: str | None = None
 
     @classmethod
     def from_dict(cls, d: dict) -> Job:
@@ -91,8 +101,10 @@ class Job:
         )
         if not env_ok:
             raise JobError("env must map strings to strings")
-        if self.timeout_min <= 0 or self.retries < 0:
-            raise JobError("timeout_min must be > 0 and retries >= 0")
+        if self.timeout_min <= 0 or self.retries < 0 or self.max_heals < 0:
+            raise JobError("timeout_min must be > 0, retries and max_heals >= 0")
+        if self.batch_env is not None and (not isinstance(self.batch_env, str) or self.batch_env not in self.env):
+            raise JobError("batch_env must name a variable set in env")
         if Path(self.cwd).is_absolute() or ".." in Path(self.cwd).parts[1:]:
             # allow sibling repos like ../scam-radar, nothing deeper outside the lab
             raise JobError("cwd must be relative to LAB_ROOT (one leading .. allowed)")
@@ -112,9 +124,17 @@ def _read_job(path: Path) -> Job:
 
 
 class Queue:
-    def __init__(self, paths: LabPaths, notifier: Callable[..., bool] = default_notify):
+    def __init__(self, paths: LabPaths, notifier: Callable[..., bool] = default_notify,
+                 healer: Healer | None = None):
         self.p = paths.ensure()
         self.notify = notifier
+        self._healer = healer
+
+    @property
+    def healer(self) -> Healer:
+        if self._healer is None:
+            self._healer = Healer()
+        return self._healer
 
     # ---- queue operations -------------------------------------------------
     def enqueue(self, job: Job | dict) -> Path:
@@ -164,7 +184,8 @@ class Queue:
 
         run = runner or subprocess.run
         ok = False
-        while job.attempts <= job.retries:
+        plain_left = job.retries
+        while True:
             job.attempts += 1
             env = {**os.environ, **job.env, "LAB_ROOT": str(self.p.root), "LAB_JOB": job.name,
                    "LAB_ATTEMPT": str(job.attempts)}
@@ -173,6 +194,7 @@ class Queue:
                 if ckpt is not None:
                     env["LAB_RESUME_FROM"] = str(ckpt)
                     job.resumed_from = str(ckpt)
+            cannot_start = timed_out = False
             with open(log_path, "a", encoding="utf-8") as log:
                 log.write(f"\n=== {now_iso()} attempt {job.attempts} :: {' '.join(job.cmd)}\n")
                 log.flush()
@@ -182,14 +204,28 @@ class Queue:
                     job.returncode = result.returncode
                 except subprocess.TimeoutExpired:
                     job.returncode = -9
+                    timed_out = True
                     log.write(f"=== timed out after {job.timeout_min} min\n")
                 except FileNotFoundError as exc:
                     job.returncode = 127
+                    cannot_start = True
                     log.write(f"=== cannot start: {exc}\n")
-                    break
+                if not (timed_out or cannot_start):
+                    log.write(f"=== exit {job.returncode}{_signame(job.returncode)}\n")
             if job.returncode == 0:
                 ok = True
                 break
+            if cannot_start:
+                break
+            if not job.heal:
+                if job.attempts > job.retries:
+                    break
+                _write_json(path, job.to_dict())
+                continue
+            if not self._heal_step(job, path, log_path, cwd, plain_left, timed_out):
+                break
+            if job.heal_log[-1]["class"] == UNKNOWN:
+                plain_left -= 1
             _write_json(path, job.to_dict())
 
         job.finished_at = now_iso()
@@ -205,6 +241,44 @@ class Queue:
                 self.notify(f"FAILED: {job.name}", f"exit {job.returncode} after {job.attempts} attempt(s)\n{tail}",
                             priority="high", tags="x")
         return job
+
+    def _heal_step(self, job: Job, path: Path, log_path: Path, cwd: Path, plain_left: int, timed_out: bool) -> bool:
+        """Diagnose the failed attempt, record the decision and apply the fix. True means retry."""
+        healer = self.healer
+        text = log_path.read_text(encoding="utf-8", errors="replace")
+        if timed_out:
+            diag = Diagnosis(UNKNOWN, 0.0, "queue", evidence=f"timed out after {job.timeout_min} min")
+        else:
+            diag = healer.diagnose(text)
+        decision = healer.decide(job, diag, plain_left)
+        if decision.retry:
+            decision = healer.apply(job, decision, self.p, cwd)
+        entry = {"attempt": job.attempts, "at": now_iso(), "class": diag.label, "confidence": round(diag.confidence, 3),
+                 "source": diag.source, "action": decision.action, "retry": decision.retry,
+                 "detail": decision.detail, "evidence": diag.evidence[:200]}
+        job.heal_log.append(entry)
+        with open(log_path, "a", encoding="utf-8") as log:
+            log.write(f"=== heal: {diag.label} ({diag.confidence:.2f}, {diag.source}) -> {decision.action}"
+                      f"{': ' + decision.detail if decision.detail else ''}\n")
+        if not decision.retry:
+            stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+            inc = healer.write_incident(job, diag, decision, self.p, _tail(log_path, 60), stamp)
+            job.incident = str(inc.relative_to(self.p.root))
+            if job.notify:
+                self.notify(f"incident: {job.name}", f"{diag.label} ({diag.confidence:.2f}): {decision.detail}\n"
+                            f"{job.incident}", priority="high", tags="rotating_light")
+        return decision.retry
+
+
+def _signame(rc: int | None) -> str:
+    if rc is None or rc >= 0:
+        return ""
+    import signal
+
+    try:
+        return f" ({signal.Signals(-rc).name})"
+    except ValueError:
+        return ""
 
 
 def _tail(path: Path, n: int) -> str:

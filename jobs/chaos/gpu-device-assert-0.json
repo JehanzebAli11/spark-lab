@@ -1,0 +1,21 @@
+{
+  "name": "chaos-gpu-device-assert-0",
+  "cmd": [
+    "../.venv-ml/bin/python",
+    "-m",
+    "labml.chaos_gpu",
+    "--fault",
+    "device_assert",
+    "--seed",
+    "0"
+  ],
+  "priority": 85,
+  "timeout_min": 5,
+  "retries": 0,
+  "heal": false,
+  "notify": false,
+  "env": {
+    "LAB_CHAOS_LABEL": "bad_data",
+    "LAB_CHAOS_FAULT": "gpu.device_assert"
+  }
+}

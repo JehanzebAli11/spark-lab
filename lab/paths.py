@@ -44,6 +44,10 @@ class LabPaths:
         return self.root / "reports"
 
     @property
+    def incidents(self) -> Path:
+        return self.root / "incidents"
+
+    @property
     def locked(self) -> Path:
         return self.root / "eval" / "locked"
 
@@ -52,7 +56,8 @@ class LabPaths:
         return self.jobs / ".worker.lock"
 
     def ensure(self) -> LabPaths:
-        for d in (self.queue, self.running, self.done, self.failed, self.logs, self.runs, self.reports):
+        for d in (self.queue, self.running, self.done, self.failed, self.logs, self.runs, self.reports,
+                  self.incidents):
             d.mkdir(parents=True, exist_ok=True)
         return self
 

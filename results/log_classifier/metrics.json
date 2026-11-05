@@ -1,0 +1,1244 @@
+{
+  "C_sweep_macro_f1": {
+    "0.1": 0.5925,
+    "0.3": 0.6298,
+    "1": 0.6459,
+    "3": 0.6534,
+    "10": 0.662,
+    "30": 0.6635
+  },
+  "C": 30,
+  "threshold": 0.55,
+  "threshold_curve": [
+    {
+      "threshold": 0.2,
+      "coverage": 1.0,
+      "precision": 0.8824
+    },
+    {
+      "threshold": 0.225,
+      "coverage": 1.0,
+      "precision": 0.8824
+    },
+    {
+      "threshold": 0.25,
+      "coverage": 1.0,
+      "precision": 0.8824
+    },
+    {
+      "threshold": 0.275,
+      "coverage": 1.0,
+      "precision": 0.8824
+    },
+    {
+      "threshold": 0.3,
+      "coverage": 1.0,
+      "precision": 0.8824
+    },
+    {
+      "threshold": 0.325,
+      "coverage": 1.0,
+      "precision": 0.8824
+    },
+    {
+      "threshold": 0.35,
+      "coverage": 0.9928,
+      "precision": 0.8846
+    },
+    {
+      "threshold": 0.375,
+      "coverage": 0.9845,
+      "precision": 0.8889
+    },
+    {
+      "threshold": 0.4,
+      "coverage": 0.9763,
+      "precision": 0.8953
+    },
+    {
+      "threshold": 0.425,
+      "coverage": 0.967,
+      "precision": 0.8975
+    },
+    {
+      "threshold": 0.45,
+      "coverage": 0.9628,
+      "precision": 0.8992
+    },
+    {
+      "threshold": 0.475,
+      "coverage": 0.9432,
+      "precision": 0.9081
+    },
+    {
+      "threshold": 0.5,
+      "coverage": 0.9133,
+      "precision": 0.9254
+    },
+    {
+      "threshold": 0.525,
+      "coverage": 0.8638,
+      "precision": 0.963
+    },
+    {
+      "threshold": 0.55,
+      "coverage": 0.8328,
+      "precision": 0.9839
+    },
+    {
+      "threshold": 0.575,
+      "coverage": 0.8153,
+      "precision": 0.9911
+    },
+    {
+      "threshold": 0.6,
+      "coverage": 0.7967,
+      "precision": 0.9974
+    },
+    {
+      "threshold": 0.625,
+      "coverage": 0.775,
+      "precision": 1.0
+    },
+    {
+      "threshold": 0.65,
+      "coverage": 0.7575,
+      "precision": 1.0
+    },
+    {
+      "threshold": 0.675,
+      "coverage": 0.742,
+      "precision": 1.0
+    },
+    {
+      "threshold": 0.7,
+      "coverage": 0.7276,
+      "precision": 1.0
+    },
+    {
+      "threshold": 0.725,
+      "coverage": 0.7162,
+      "precision": 1.0
+    },
+    {
+      "threshold": 0.75,
+      "coverage": 0.6956,
+      "precision": 1.0
+    },
+    {
+      "threshold": 0.775,
+      "coverage": 0.6811,
+      "precision": 1.0
+    },
+    {
+      "threshold": 0.8,
+      "coverage": 0.6667,
+      "precision": 1.0
+    },
+    {
+      "threshold": 0.825,
+      "coverage": 0.6471,
+      "precision": 1.0
+    },
+    {
+      "threshold": 0.85,
+      "coverage": 0.6213,
+      "precision": 1.0
+    },
+    {
+      "threshold": 0.875,
+      "coverage": 0.5965,
+      "precision": 1.0
+    },
+    {
+      "threshold": 0.9,
+      "coverage": 0.5882,
+      "precision": 1.0
+    },
+    {
+      "threshold": 0.925,
+      "coverage": 0.5748,
+      "precision": 1.0
+    },
+    {
+      "threshold": 0.95,
+      "coverage": 0.5614,
+      "precision": 1.0
+    }
+  ],
+  "n_features": 4630,
+  "splits": {
+    "train": {
+      "rules": {
+        "n": 2562,
+        "accuracy": 0.6042,
+        "coverage": 0.7116,
+        "precision_when_acting": 0.8491,
+        "wrong_actions": 275,
+        "escalated": 739,
+        "macro_f1": 0.6992,
+        "per_class": {
+          "oom": {
+            "precision": 1.0,
+            "recall": 0.625,
+            "f1": 0.7692,
+            "support": 336
+          },
+          "disk_full": {
+            "precision": 1.0,
+            "recall": 0.5714,
+            "f1": 0.7273,
+            "support": 294
+          },
+          "cuda_error": {
+            "precision": 0.6183,
+            "recall": 0.7857,
+            "f1": 0.692,
+            "support": 336
+          },
+          "network": {
+            "precision": 0.6067,
+            "recall": 0.3214,
+            "f1": 0.4202,
+            "support": 336
+          },
+          "bad_data": {
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6667,
+            "support": 420
+          },
+          "flaky": {
+            "precision": 1.0,
+            "recall": 0.75,
+            "f1": 0.8571,
+            "support": 336
+          },
+          "code_bug": {
+            "precision": 0.8889,
+            "recall": 0.6667,
+            "f1": 0.7619,
+            "support": 504
+          }
+        }
+      },
+      "model": {
+        "n": 2562,
+        "accuracy": 1.0,
+        "coverage": 1.0,
+        "precision_when_acting": 1.0,
+        "wrong_actions": 0,
+        "escalated": 0,
+        "macro_f1": 1.0,
+        "per_class": {
+          "oom": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 336
+          },
+          "disk_full": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 294
+          },
+          "cuda_error": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 336
+          },
+          "network": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 336
+          },
+          "bad_data": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 420
+          },
+          "flaky": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 336
+          },
+          "code_bug": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 504
+          }
+        }
+      },
+      "model+threshold": {
+        "n": 2562,
+        "accuracy": 1.0,
+        "coverage": 1.0,
+        "precision_when_acting": 1.0,
+        "wrong_actions": 0,
+        "escalated": 0,
+        "macro_f1": 1.0,
+        "per_class": {
+          "oom": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 336
+          },
+          "disk_full": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 294
+          },
+          "cuda_error": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 336
+          },
+          "network": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 336
+          },
+          "bad_data": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 420
+          },
+          "flaky": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 336
+          },
+          "code_bug": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 504
+          }
+        }
+      },
+      "hybrid+threshold": {
+        "n": 2562,
+        "accuracy": 0.927,
+        "coverage": 1.0,
+        "precision_when_acting": 0.927,
+        "wrong_actions": 187,
+        "escalated": 0,
+        "macro_f1": 0.9295,
+        "per_class": {
+          "oom": {
+            "precision": 1.0,
+            "recall": 0.9524,
+            "f1": 0.9756,
+            "support": 336
+          },
+          "disk_full": {
+            "precision": 1.0,
+            "recall": 0.8401,
+            "f1": 0.9131,
+            "support": 294
+          },
+          "cuda_error": {
+            "precision": 0.6985,
+            "recall": 1.0,
+            "f1": 0.8225,
+            "support": 336
+          },
+          "network": {
+            "precision": 1.0,
+            "recall": 0.9107,
+            "f1": 0.9533,
+            "support": 336
+          },
+          "bad_data": {
+            "precision": 1.0,
+            "recall": 0.8476,
+            "f1": 0.9175,
+            "support": 420
+          },
+          "flaky": {
+            "precision": 1.0,
+            "recall": 0.9702,
+            "f1": 0.9849,
+            "support": 336
+          },
+          "code_bug": {
+            "precision": 0.9202,
+            "recall": 0.9603,
+            "f1": 0.9398,
+            "support": 504
+          }
+        }
+      }
+    },
+    "val": {
+      "rules": {
+        "n": 549,
+        "accuracy": 0.6011,
+        "coverage": 0.7486,
+        "precision_when_acting": 0.8029,
+        "wrong_actions": 81,
+        "escalated": 138,
+        "macro_f1": 0.6815,
+        "per_class": {
+          "oom": {
+            "precision": 1.0,
+            "recall": 0.625,
+            "f1": 0.7692,
+            "support": 72
+          },
+          "disk_full": {
+            "precision": 1.0,
+            "recall": 0.5714,
+            "f1": 0.7273,
+            "support": 63
+          },
+          "cuda_error": {
+            "precision": 0.4545,
+            "recall": 0.8333,
+            "f1": 0.5882,
+            "support": 72
+          },
+          "network": {
+            "precision": 1.0,
+            "recall": 0.25,
+            "f1": 0.4,
+            "support": 72
+          },
+          "bad_data": {
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6667,
+            "support": 90
+          },
+          "flaky": {
+            "precision": 1.0,
+            "recall": 0.75,
+            "f1": 0.8571,
+            "support": 72
+          },
+          "code_bug": {
+            "precision": 0.8889,
+            "recall": 0.6667,
+            "f1": 0.7619,
+            "support": 108
+          }
+        }
+      },
+      "model": {
+        "n": 549,
+        "accuracy": 1.0,
+        "coverage": 1.0,
+        "precision_when_acting": 1.0,
+        "wrong_actions": 0,
+        "escalated": 0,
+        "macro_f1": 1.0,
+        "per_class": {
+          "oom": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 72
+          },
+          "disk_full": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 63
+          },
+          "cuda_error": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 72
+          },
+          "network": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 72
+          },
+          "bad_data": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 90
+          },
+          "flaky": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 72
+          },
+          "code_bug": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 108
+          }
+        }
+      },
+      "model+threshold": {
+        "n": 549,
+        "accuracy": 1.0,
+        "coverage": 1.0,
+        "precision_when_acting": 1.0,
+        "wrong_actions": 0,
+        "escalated": 0,
+        "macro_f1": 1.0,
+        "per_class": {
+          "oom": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 72
+          },
+          "disk_full": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 63
+          },
+          "cuda_error": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 72
+          },
+          "network": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 72
+          },
+          "bad_data": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 90
+          },
+          "flaky": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 72
+          },
+          "code_bug": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 108
+          }
+        }
+      },
+      "hybrid+threshold": {
+        "n": 549,
+        "accuracy": 0.8652,
+        "coverage": 1.0,
+        "precision_when_acting": 0.8652,
+        "wrong_actions": 74,
+        "escalated": 0,
+        "macro_f1": 0.8758,
+        "per_class": {
+          "oom": {
+            "precision": 1.0,
+            "recall": 0.8889,
+            "f1": 0.9412,
+            "support": 72
+          },
+          "disk_full": {
+            "precision": 1.0,
+            "recall": 0.8095,
+            "f1": 0.8947,
+            "support": 63
+          },
+          "cuda_error": {
+            "precision": 0.5255,
+            "recall": 1.0,
+            "f1": 0.689,
+            "support": 72
+          },
+          "network": {
+            "precision": 1.0,
+            "recall": 0.7639,
+            "f1": 0.8661,
+            "support": 72
+          },
+          "bad_data": {
+            "precision": 1.0,
+            "recall": 0.7889,
+            "f1": 0.882,
+            "support": 90
+          },
+          "flaky": {
+            "precision": 1.0,
+            "recall": 0.9167,
+            "f1": 0.9565,
+            "support": 72
+          },
+          "code_bug": {
+            "precision": 0.9143,
+            "recall": 0.8889,
+            "f1": 0.9014,
+            "support": 108
+          }
+        }
+      }
+    },
+    "test": {
+      "rules": {
+        "n": 549,
+        "accuracy": 0.6047,
+        "coverage": 0.7049,
+        "precision_when_acting": 0.8579,
+        "wrong_actions": 55,
+        "escalated": 162,
+        "macro_f1": 0.7029,
+        "per_class": {
+          "oom": {
+            "precision": 1.0,
+            "recall": 0.625,
+            "f1": 0.7692,
+            "support": 72
+          },
+          "disk_full": {
+            "precision": 1.0,
+            "recall": 0.5714,
+            "f1": 0.7273,
+            "support": 63
+          },
+          "cuda_error": {
+            "precision": 0.6588,
+            "recall": 0.7778,
+            "f1": 0.7134,
+            "support": 72
+          },
+          "network": {
+            "precision": 0.5854,
+            "recall": 0.3333,
+            "f1": 0.4248,
+            "support": 72
+          },
+          "bad_data": {
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6667,
+            "support": 90
+          },
+          "flaky": {
+            "precision": 1.0,
+            "recall": 0.75,
+            "f1": 0.8571,
+            "support": 72
+          },
+          "code_bug": {
+            "precision": 0.8889,
+            "recall": 0.6667,
+            "f1": 0.7619,
+            "support": 108
+          }
+        }
+      },
+      "model": {
+        "n": 549,
+        "accuracy": 1.0,
+        "coverage": 1.0,
+        "precision_when_acting": 1.0,
+        "wrong_actions": 0,
+        "escalated": 0,
+        "macro_f1": 1.0,
+        "per_class": {
+          "oom": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 72
+          },
+          "disk_full": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 63
+          },
+          "cuda_error": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 72
+          },
+          "network": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 72
+          },
+          "bad_data": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 90
+          },
+          "flaky": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 72
+          },
+          "code_bug": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 108
+          }
+        }
+      },
+      "model+threshold": {
+        "n": 549,
+        "accuracy": 1.0,
+        "coverage": 1.0,
+        "precision_when_acting": 1.0,
+        "wrong_actions": 0,
+        "escalated": 0,
+        "macro_f1": 1.0,
+        "per_class": {
+          "oom": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 72
+          },
+          "disk_full": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 63
+          },
+          "cuda_error": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 72
+          },
+          "network": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 72
+          },
+          "bad_data": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 90
+          },
+          "flaky": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 72
+          },
+          "code_bug": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 108
+          }
+        }
+      },
+      "hybrid+threshold": {
+        "n": 549,
+        "accuracy": 0.9326,
+        "coverage": 1.0,
+        "precision_when_acting": 0.9326,
+        "wrong_actions": 37,
+        "escalated": 0,
+        "macro_f1": 0.9347,
+        "per_class": {
+          "oom": {
+            "precision": 1.0,
+            "recall": 0.9583,
+            "f1": 0.9787,
+            "support": 72
+          },
+          "disk_full": {
+            "precision": 1.0,
+            "recall": 0.8413,
+            "f1": 0.9138,
+            "support": 63
+          },
+          "cuda_error": {
+            "precision": 0.72,
+            "recall": 1.0,
+            "f1": 0.8372,
+            "support": 72
+          },
+          "network": {
+            "precision": 1.0,
+            "recall": 0.9306,
+            "f1": 0.964,
+            "support": 72
+          },
+          "bad_data": {
+            "precision": 1.0,
+            "recall": 0.8556,
+            "f1": 0.9222,
+            "support": 90
+          },
+          "flaky": {
+            "precision": 1.0,
+            "recall": 0.9722,
+            "f1": 0.9859,
+            "support": 72
+          },
+          "code_bug": {
+            "precision": 0.9204,
+            "recall": 0.963,
+            "f1": 0.9412,
+            "support": 108
+          }
+        }
+      }
+    },
+    "heldout_val": {
+      "rules": {
+        "n": 420,
+        "accuracy": 1.0,
+        "coverage": 1.0,
+        "precision_when_acting": 1.0,
+        "wrong_actions": 0,
+        "escalated": 0,
+        "macro_f1": 1.0,
+        "per_class": {
+          "oom": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 60
+          },
+          "disk_full": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 60
+          },
+          "cuda_error": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 60
+          },
+          "network": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 60
+          },
+          "bad_data": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 60
+          },
+          "flaky": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 60
+          },
+          "code_bug": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 60
+          }
+        }
+      },
+      "model": {
+        "n": 420,
+        "accuracy": 0.7286,
+        "coverage": 1.0,
+        "precision_when_acting": 0.7286,
+        "wrong_actions": 114,
+        "escalated": 0,
+        "macro_f1": 0.6483,
+        "per_class": {
+          "oom": {
+            "precision": 0.5,
+            "recall": 1.0,
+            "f1": 0.6667,
+            "support": 60
+          },
+          "disk_full": {
+            "precision": 1.0,
+            "recall": 0.1,
+            "f1": 0.1818,
+            "support": 60
+          },
+          "cuda_error": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 60
+          },
+          "network": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 60
+          },
+          "bad_data": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 60
+          },
+          "flaky": {
+            "precision": 0.5263,
+            "recall": 1.0,
+            "f1": 0.6897,
+            "support": 60
+          },
+          "code_bug": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 60
+          }
+        }
+      },
+      "model+threshold": {
+        "n": 420,
+        "accuracy": 0.5833,
+        "coverage": 0.6143,
+        "precision_when_acting": 0.9496,
+        "wrong_actions": 13,
+        "escalated": 162,
+        "macro_f1": 0.6216,
+        "per_class": {
+          "oom": {
+            "precision": 0.8676,
+            "recall": 0.9833,
+            "f1": 0.9219,
+            "support": 60
+          },
+          "disk_full": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 60
+          },
+          "cuda_error": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 60
+          },
+          "network": {
+            "precision": 1.0,
+            "recall": 0.6833,
+            "f1": 0.8119,
+            "support": 60
+          },
+          "bad_data": {
+            "precision": 1.0,
+            "recall": 0.6,
+            "f1": 0.75,
+            "support": 60
+          },
+          "flaky": {
+            "precision": 0.9245,
+            "recall": 0.8167,
+            "f1": 0.8673,
+            "support": 60
+          },
+          "code_bug": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 60
+          }
+        }
+      },
+      "hybrid+threshold": {
+        "n": 420,
+        "accuracy": 1.0,
+        "coverage": 1.0,
+        "precision_when_acting": 1.0,
+        "wrong_actions": 0,
+        "escalated": 0,
+        "macro_f1": 1.0,
+        "per_class": {
+          "oom": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 60
+          },
+          "disk_full": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 60
+          },
+          "cuda_error": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 60
+          },
+          "network": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 60
+          },
+          "bad_data": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 60
+          },
+          "flaky": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 60
+          },
+          "code_bug": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 60
+          }
+        }
+      }
+    },
+    "heldout_test": {
+      "rules": {
+        "n": 420,
+        "accuracy": 0.7143,
+        "coverage": 0.7857,
+        "precision_when_acting": 0.9091,
+        "wrong_actions": 30,
+        "escalated": 90,
+        "macro_f1": 0.6829,
+        "per_class": {
+          "oom": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 60
+          },
+          "disk_full": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 60
+          },
+          "cuda_error": {
+            "precision": 0.75,
+            "recall": 1.0,
+            "f1": 0.8571,
+            "support": 60
+          },
+          "network": {
+            "precision": 0.8571,
+            "recall": 1.0,
+            "f1": 0.9231,
+            "support": 60
+          },
+          "bad_data": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 60
+          },
+          "flaky": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 60
+          },
+          "code_bug": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 60
+          }
+        }
+      },
+      "model": {
+        "n": 420,
+        "accuracy": 0.6833,
+        "coverage": 1.0,
+        "precision_when_acting": 0.6833,
+        "wrong_actions": 133,
+        "escalated": 0,
+        "macro_f1": 0.6043,
+        "per_class": {
+          "oom": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 60
+          },
+          "disk_full": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 60
+          },
+          "cuda_error": {
+            "precision": 1.0,
+            "recall": 0.05,
+            "f1": 0.0952,
+            "support": 60
+          },
+          "network": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 60
+          },
+          "bad_data": {
+            "precision": 1.0,
+            "recall": 0.7333,
+            "f1": 0.8462,
+            "support": 60
+          },
+          "flaky": {
+            "precision": 0.5,
+            "recall": 1.0,
+            "f1": 0.6667,
+            "support": 60
+          },
+          "code_bug": {
+            "precision": 0.4511,
+            "recall": 1.0,
+            "f1": 0.6218,
+            "support": 60
+          }
+        }
+      },
+      "model+threshold": {
+        "n": 420,
+        "accuracy": 0.3619,
+        "coverage": 0.5048,
+        "precision_when_acting": 0.717,
+        "wrong_actions": 60,
+        "escalated": 208,
+        "macro_f1": 0.3721,
+        "per_class": {
+          "oom": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 60
+          },
+          "disk_full": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 60
+          },
+          "cuda_error": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 60
+          },
+          "network": {
+            "precision": 1.0,
+            "recall": 0.85,
+            "f1": 0.9189,
+            "support": 60
+          },
+          "bad_data": {
+            "precision": 1.0,
+            "recall": 0.15,
+            "f1": 0.2609,
+            "support": 60
+          },
+          "flaky": {
+            "precision": 0.3617,
+            "recall": 0.5667,
+            "f1": 0.4416,
+            "support": 60
+          },
+          "code_bug": {
+            "precision": 1.0,
+            "recall": 0.9667,
+            "f1": 0.9831,
+            "support": 60
+          }
+        }
+      },
+      "hybrid+threshold": {
+        "n": 420,
+        "accuracy": 0.7143,
+        "coverage": 0.8786,
+        "precision_when_acting": 0.813,
+        "wrong_actions": 69,
+        "escalated": 51,
+        "macro_f1": 0.6534,
+        "per_class": {
+          "oom": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 60
+          },
+          "disk_full": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 60
+          },
+          "cuda_error": {
+            "precision": 0.7792,
+            "recall": 1.0,
+            "f1": 0.8759,
+            "support": 60
+          },
+          "network": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 60
+          },
+          "bad_data": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 60
+          },
+          "flaky": {
+            "precision": 0.5357,
+            "recall": 1.0,
+            "f1": 0.6977,
+            "support": 60
+          },
+          "code_bug": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 60
+          }
+        }
+      }
+    }
+  },
+  "mode": "model",
+  "export_max_prob_diff": 1.0647335010327552e-06
+}

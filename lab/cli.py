@@ -51,6 +51,13 @@ def main(argv: list[str] | None = None) -> int:
     pr.add_argument("--keep", type=int, default=3)
     pr.add_argument("--dry-run", action="store_true")
 
+    st = sub.add_parser("serve-triage", help="serve the failure classifier over HTTP")
+    st.add_argument("--host", default="127.0.0.1")
+    st.add_argument("--port", type=int, default=8040)
+
+    cl = sub.add_parser("classify", help="classify a failed job's log file")
+    cl.add_argument("log", type=Path)
+
     n = sub.add_parser("notify", help="send a test notification")
     n.add_argument("message", nargs="?", default="hello from the Spark")
 
@@ -93,6 +100,18 @@ def main(argv: list[str] | None = None) -> int:
         removed = checkpoints.prune(a.root_dir, keep=a.keep, dry_run=a.dry_run)
         for p in removed:
             print(("would remove " if a.dry_run else "removed ") + str(p))
+        return 0
+
+    if a.cmd == "serve-triage":
+        from .serve import main as serve_main
+
+        return serve_main(a.host, a.port)
+
+    if a.cmd == "classify":
+        from .heal import default_triage
+
+        print(json.dumps(default_triage().classify(a.log.read_text(encoding="utf-8", errors="replace")).to_dict(),
+                         indent=2))
         return 0
 
     if a.cmd == "notify":
