@@ -15,3 +15,4 @@ jobs:
       - run: ruff check .
       - run: bash -n jobs/nightly.sh scripts/setup_spark.sh publish/publish.sh
       - run: pytest -q
+      - run: python -m labml.readme --check   # README results block must match results/*.json

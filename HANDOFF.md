@@ -233,7 +233,7 @@ check dmesg after the first real OOM. Open pull requests; the owner merges.
 - [x] Self-healing queue, chaos dataset, classifier, doctor, auto-fix, demos, README
 - [x] Triage server + remote client + CLI, systemd unit
 - [x] VLM doctor client (fake-tested), GPU chaos script + job files, collect / eval-real
-- [ ] CI: add `python -m labml.readme --check` and the `ml` extra to a second CI job
+- [x] CI: `python -m labml.readme --check` (the `ml` extra is not in CI; training is too slow for it)
 - [ ] Doctor: a stronger label-noise fix (co-teaching) and a two-cause dataset
 - [ ] Classifier: per-class thresholds; calibrate with temperature scaling
 - [ ] Nightly report: a one-line doctor verdict per training job (needs Step 7 adapter)
