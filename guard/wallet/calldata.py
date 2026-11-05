@@ -91,7 +91,7 @@ def _explain_call(kind: str, a: dict, token: str, sender: str | None, names: Nam
         spender, amount = a["spender"], a["amount"]
         unlimited = amount >= UNLIMITED
         verb = "Lets" if kind == "approve" else "Raises the allowance so"
-        summary = (f"{verb} {names.who(spender)} spend {names.amount(token, amount)} of your {tok}, "
+        summary = (f"{verb} {names.who(spender)} spend {names.amount_of(token, amount)} from your wallet, "
                    "until you revoke it." if amount else f"Revokes {names.who(spender)}'s allowance on {tok}.")
         flags = []
         if unlimited:
@@ -107,7 +107,7 @@ def _explain_call(kind: str, a: dict, token: str, sender: str | None, names: Nam
                        flags=flags)]
     if kind == "decrease_allowance":
         return [Effect(kind, f"Lowers {names.who(a['spender'])}'s allowance on {tok} by "
-                             f"{names.amount(token, a['amount'])}.", asset=token, counterparty=a["spender"],
+                             f"{names.amount_of(token, a['amount'])}.", asset=token, counterparty=a["spender"],
                        amount=a["amount"])]
     if kind == "approve_all":
         op = a["operator"]
@@ -120,7 +120,7 @@ def _explain_call(kind: str, a: dict, token: str, sender: str | None, names: Nam
                                    "Approval for all is how most NFT drainers empty a wallet in one go."),
                               *unknown_party_flag(names, op, "operator")])]
     if kind == "transfer":
-        return [Effect(kind, f"Sends {names.amount(token, a['amount'])} of {tok} to {names.who(a['to'])}.",
+        return [Effect(kind, f"Sends {names.amount_of(token, a['amount'])} to {names.who(a['to'])}.",
                        asset=token, counterparty=a["to"], amount=a["amount"],
                        flags=unknown_party_flag(names, a["to"], "recipient"))]
     if kind == "transfer_from":
@@ -128,7 +128,7 @@ def _explain_call(kind: str, a: dict, token: str, sender: str | None, names: Nam
         if sender and a["from"].lower() != sender.lower():
             flags.append(Flag("moves_others_funds", "medium",
                               f"Moves tokens out of {names.who(a['from'])}, which is not the sending account."))
-        return [Effect(kind, f"Moves {names.amount(token, a['amount'])} of {tok} from {names.who(a['from'])} "
+        return [Effect(kind, f"Moves {names.amount_of(token, a['amount'])} from {names.who(a['from'])} "
                              f"to {names.who(a['to'])}.", asset=token, counterparty=a["to"], amount=a["amount"],
                        flags=flags)]
     if kind == "nft_transfer":
@@ -148,7 +148,7 @@ def _explain_call(kind: str, a: dict, token: str, sender: str | None, names: Nam
     if kind == "permit_call":
         unlimited = a["value"] >= UNLIMITED
         return [Effect(kind, f"Submits a signed permit letting {names.who(a['spender'])} spend "
-                             f"{names.amount(token, a['value'])} of {tok} owned by {names.who(a['owner'])}.",
+                             f"{names.amount_of(token, a['value'])} owned by {names.who(a['owner'])}.",
                        asset=token, counterparty=a["spender"], amount=a["value"], unlimited=unlimited,
                        expires=a["deadline"],
                        flags=[Flag("unlimited_approval", "high", "The permit grants an unlimited allowance.")]

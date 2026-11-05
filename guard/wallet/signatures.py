@@ -93,8 +93,8 @@ def _eip2612(m: dict, token: str | None, names: Names, now: int) -> list[Effect]
                   f"{names.who(spender)} could take all of this token you hold.")] if unlimited else [
         Flag("token_approval", "medium", "Signing grants an allowance the spender can use without asking again.")]
     flags += _expiry_flags(deadline, now, "signature") + unknown_party_flag(names, spender, "spender")
-    return [Effect("permit", f"Lets {names.who(spender)} spend {names.amount(token, value)} of your "
-                             f"{names.token(token)}.", asset=token, counterparty=spender, amount=value,
+    return [Effect("permit", f"Lets {names.who(spender)} spend {names.amount_of(token, value)} from your "
+                             "wallet.", asset=token, counterparty=spender, amount=value,
                    unlimited=unlimited, expires=deadline, flags=flags)]
 
 
@@ -109,8 +109,8 @@ def _permit2_allowance(primary: str, m: dict, names: Names, now: int) -> list[Ef
         flags = [Flag("unlimited_approval", "high", f"{names.who(spender)} could take all your {names.token(token)}.")
                  ] if unlimited else [Flag("token_approval", "medium", "Grants a Permit2 allowance.")]
         flags += _expiry_flags(expiration, now, "allowance") + unknown_party_flag(names, spender, "spender")
-        out.append(Effect("permit2_allowance", f"Lets {names.who(spender)} spend {names.amount(token, amount)} "
-                                               f"of your {names.token(token)} through Permit2.",
+        out.append(Effect("permit2_allowance", f"Lets {names.who(spender)} spend {names.amount_of(token, amount)} "
+                                               "from your wallet through Permit2.",
                           asset=token, counterparty=spender, amount=amount, unlimited=unlimited,
                           expires=expiration, flags=flags))
     if len(out) > 1:
@@ -127,8 +127,8 @@ def _permit2_transfer(m: dict, names: Names, now: int) -> list[Effect]:
     for p in items:
         token, amount = _addr(p["token"]), _int(p["amount"])
         out.append(Effect("permit2_transfer",
-                          f"Lets {names.who(spender)} take {names.amount(token, amount)} of your "
-                          f"{names.token(token)} directly, once.", asset=token, counterparty=spender, amount=amount,
+                          f"Lets {names.who(spender)} take {names.amount_of(token, amount)} from your "
+                          "wallet directly, once.", asset=token, counterparty=spender, amount=amount,
                           unlimited=amount >= UNLIMITED, expires=deadline,
                           flags=[Flag("signature_transfer", "high",
                                       "This signature lets the spender move the tokens itself, without a "
@@ -150,7 +150,7 @@ def _seaport(m: dict, dname: str, names: Names) -> list[Effect]:
         elif t in (_ERC721, _ERC1155):
             gives.append(f"item #{_int(it['identifierOrCriteria'])} of {short(token)}")
         elif t == _ERC20:
-            gives.append(f"{names.amount(token, _int(it['startAmount']))} of {names.token(token)}")
+            gives.append(names.amount_of(token, _int(it["startAmount"])))
         else:
             gives.append(f"{_int(it['startAmount']) / 1e18:,.6g} ETH")
     to_you = sum(_int(c["startAmount"]) for c in consideration

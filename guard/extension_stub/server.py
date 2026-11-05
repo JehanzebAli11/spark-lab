@@ -37,7 +37,9 @@ def _registrable(host: str) -> str:
     return ".".join(parts[-2:])
 
 
-def fake_verdicts(req: dict) -> dict:
+def fake_verdicts(req: dict, brands: dict | None = None) -> dict:
+    """Rule-based verdicts. `brands` maps extra brand names to their real domains (e.g. for demos)."""
+    brands = {**BRANDS, **(brands or {})}
     verdicts = []
     for c in req.get("candidates", []):
         hint = c.get("hint")
@@ -58,21 +60,26 @@ def fake_verdicts(req: dict) -> dict:
             verdicts.append({"key": c["key"], "kind": "none", "p": 0.1, "action": "none"})
 
     host = urlparse(req.get("url", "")).hostname or ""
-    text = " ".join([req.get("title", "")] + req.get("headings", [])).lower()
-    brand = next((b for b in BRANDS if b in text), None)
+    shown = " ".join([req.get("title", "")] + req.get("headings", []))
+    text = shown.lower()
+    brand = next((b for b in brands if b in text), None)
+    # the brand as the page spells it ("NovaPay", "PayPal")
+    display = shown[text.index(brand):text.index(brand) + len(brand)] if brand else None
     page = {"phishing_p": 0.02, "brand": None, "reason": "no brand or login form"}
     if brand and req.get("has_password_field"):
-        real = BRANDS[brand]
+        real = brands[brand]
         # google.co.uk is Google; google-login.com and paypal.com.evil.test are not.
         if _registrable(host).split(".")[0] != real.split(".")[0]:
-            page = {"phishing_p": 0.92, "brand": brand.title(),
-                    "reason": f"asks for a password as {brand.title()} on {host}, not {real}"}
+            page = {"phishing_p": 0.92, "brand": display,
+                    "reason": f"asks for a password as {display} on {host}, not {real}"}
         else:
-            page = {"phishing_p": 0.03, "brand": brand.title(), "reason": f"real {real} login"}
+            page = {"phishing_p": 0.03, "brand": display, "reason": f"real {real} login"}
     return {"model": "stub-rules-0", "verdicts": verdicts, "page": page}
 
 
 class _Handler(BaseHTTPRequestHandler):
+    brands: dict = {}
+
     def log_message(self, *args):
         pass
 
@@ -108,18 +115,22 @@ class _Handler(BaseHTTPRequestHandler):
             req = json.loads(self.rfile.read(n))
         except json.JSONDecodeError:
             return self._send(400, {"error": "invalid JSON"})
-        return self._send(200, fake_verdicts(req))
+        return self._send(200, fake_verdicts(req, self.brands))
 
 
-def make_server(port: int = 8765, host: str = "127.0.0.1") -> ThreadingHTTPServer:
-    return ThreadingHTTPServer((host, port), _Handler)
+def make_server(port: int = 8765, host: str = "127.0.0.1", brands: dict | None = None) -> ThreadingHTTPServer:
+    handler = type("Handler", (_Handler,), {"brands": dict(brands or {})})
+    return ThreadingHTTPServer((host, port), handler)
 
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m guard.extension_stub")
     ap.add_argument("--port", type=int, default=8765)
+    ap.add_argument("--brand", action="append", default=[], metavar="NAME=DOMAIN",
+                    help="extra brand and its real domain, e.g. novapay=novapay.example (repeatable)")
     a = ap.parse_args(argv)
-    srv = make_server(a.port)
+    brands = dict(b.lower().split("=", 1) for b in a.brand)
+    srv = make_server(a.port, brands=brands)
     print(f"Spark Guard stub listening on http://127.0.0.1:{a.port}/v1/page-check")
     with contextlib.suppress(KeyboardInterrupt):
         srv.serve_forever()

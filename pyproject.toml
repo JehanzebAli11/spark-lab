@@ -32,3 +32,4 @@ ignore = ["DTZ005"]   # naive now() is fine where we immediately call .astimezon
 # HTML page fragments read better unbroken
 "guard/screen_injection/templates.py" = ["E501"]
 "guard/screen_injection/generate.py" = ["E501"]
+"guard/media/*.py" = ["E501"]

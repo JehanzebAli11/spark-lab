@@ -97,14 +97,15 @@ class Names:
     def is_known(self, addr: str | None) -> bool:
         return bool(addr) and addr.lower() in self.known
 
-    def amount(self, token: str | None, raw: int) -> str:
-        if raw >= UNLIMITED:
-            return "an UNLIMITED amount"
+    def amount_of(self, token: str | None, raw: int) -> str:
+        """The whole phrase: '40 USDC (0xA0b8…eB48)', '1,000 base units of token 0x…', 'an UNLIMITED amount of …'."""
         t = self.tokens.get((token or "").lower())
+        label = f"{t['symbol']} ({short(token)})" if t else f"token {short(token)}"
+        if raw >= UNLIMITED:
+            return f"an UNLIMITED amount of {label}"
         if t and "decimals" in t:
-            value = raw / 10 ** int(t["decimals"])
-            return f"{value:,.6g} {t['symbol']}"
-        return f"{raw:,} base units"
+            return f"{raw / 10 ** int(t['decimals']):,.6g} {label}"
+        return f"{raw:,} base units of {label}"
 
 
 def unknown_party_flag(names: Names, addr: str | None, role: str) -> list[Flag]:
