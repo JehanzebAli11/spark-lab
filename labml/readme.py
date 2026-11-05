@@ -42,7 +42,8 @@ def block() -> str:
         out.append(f"| {name} | {sees[name]} | {d['test']['raw']['accuracy']:.3f} | "
                    f"{d['heldout_task']['raw']['accuracy']:.3f} |")
     bp = af["by_policy"]
-    out += ["", "Auto-fix loop on harmed test + held-out-task runs (up to 3 rounds of diagnose, change setting, rerun):",
+    out += ["", "Auto-fix loop on harmed test + held-out-task runs "
+            "(up to 3 rounds of diagnose, change setting, rerun):",
             "", "| Policy | Rescued | Rate | Healthy runs hurt |", "| --- | --- | --- | --- |"]
     for p, label in (("none", "rerun unchanged"), ("doctor", "features doctor"), ("ensemble", "ensemble doctor"),
                      ("oracle", "true-cause fix")):
