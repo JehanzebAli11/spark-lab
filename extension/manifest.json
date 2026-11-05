@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "Spark Guard (dev)",
+  "version": "0.1.0",
+  "description": "Hides ads, rejects cookie banners and warns about phishing pages, using a model running on your own machine.",
+  "permissions": ["storage", "activeTab"],
+  "host_permissions": ["<all_urls>"],
+  "background": {"service_worker": "background.js"},
+  "content_scripts": [
+    {"matches": ["http://*/*", "https://*/*"], "js": ["core.js", "content.js"], "run_at": "document_idle"}
+  ],
+  "options_page": "options.html"
+}

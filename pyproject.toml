@@ -9,12 +9,14 @@ dependencies = []
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff>=0.6"]
+# Rendering the screen-injection dataset and the browser tests; then: python -m playwright install chromium
+security = ["playwright>=1.48"]
 
 [project.scripts]
 lab = "lab.cli:main"
 
-[tool.setuptools]
-packages = ["lab"]
+[tool.setuptools.packages.find]
+include = ["lab*", "guard*"]
 
 [tool.ruff]
 line-length = 120
@@ -25,3 +27,9 @@ testpaths = ["tests"]
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM", "DTZ", "BLE"]
 ignore = ["DTZ005"]   # naive now() is fine where we immediately call .astimezone()
+
+[tool.ruff.lint.per-file-ignores]
+# HTML page fragments read better unbroken
+"guard/screen_injection/templates.py" = ["E501"]
+"guard/screen_injection/generate.py" = ["E501"]
+"guard/media/*.py" = ["E501"]

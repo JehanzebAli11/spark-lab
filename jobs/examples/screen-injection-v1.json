@@ -1,0 +1,8 @@
+{
+  "name": "screen-injection-v1",
+  "cmd": ["python3", "-m", "guard.screen_injection", "--n", "20000", "--out", "runs/screen-injection/v1", "--preview", "50"],
+  "priority": 40,
+  "timeout_min": 120,
+  "retries": 2,
+  "report": "runs/screen-injection/v1/summary.md"
+}

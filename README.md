@@ -41,6 +41,17 @@ python3 -m lab enqueue jobs/nightly.d/example-smoke.json && python3 -m lab worke
 Project repos sit next to this one (`~/lab/scam-radar`, …) and jobs reach them with
 `"cwd": "../scam-radar"`. See `jobs/examples/` for a training job that resumes from checkpoints and an eval job whose markdown lands in the nightly report.
 
+## Security tooling
+
+`guard/` holds the datasets, harnesses and decoders for the lightweight security models:
+
+- a screen-injection dataset generator
+- an action-firewall agent harness
+- a Chrome extension shell with a local stub endpoint
+- a wallet signature decoder
+
+See [`guard/README.md`](guard/README.md).
+
 ## Job format
 
 ```json
@@ -69,6 +80,10 @@ quotes it.
 | `python3 -m lab report [--date YYYY-MM-DD]` | Write `reports/<date>.md` |
 | `python3 -m lab prune runs/ --keep 3 [--dry-run]` | Keep the newest checkpoints per run |
 | `python3 -m lab notify "text"` | Test phone alerts |
+| `python3 -m guard.screen_injection --n N --out DIR` | Render the screen-injection dataset |
+| `python3 -m guard.firewall --out DIR --guard rules` | Run the action-firewall harness |
+| `python3 -m guard.wallet tx --to … --data …` | Explain a wallet request |
+| `python3 -m guard.extension_stub` | Local endpoint for the Chrome extension |
 
 ## Ground rules
 
@@ -83,4 +98,4 @@ in [`CLAUDE.md`](CLAUDE.md) and [`AGENTS.md`](AGENTS.md).
 pip install -e '.[dev]' && ruff check . && pytest -q
 ```
 
-Standard library only at runtime, Python 3.10+. MIT licensed.
+Standard library only at runtime (Playwright is an optional extra for `guard.screen_injection`), Python 3.10+. MIT licensed.
