@@ -9,10 +9,10 @@ status table is the source of truth.
 
 | Part | State | Evidence |
 | --- | --- | --- |
-| Self-healing queue (classify failures, apply fixes, incidents, report) | in progress | |
-| Chaos jobs + labelled log dataset | not started | |
-| Log classifier (CPU) + confidence threshold | not started | |
-| Training-run doctor (sim runs, image + features models, auto-fix loop) | not started | |
+| Self-healing queue (classify failures, apply fixes, incidents, report) | done, 35 tests pass | `tests/test_heal.py`, `results/demo/queue_report.md` |
+| Chaos jobs + labelled log dataset | done (4,500 rows, 75 variants) | `datasets/chaos-logs/` |
+| Log classifier (CPU) + confidence threshold | done, v4 shipped | `results/log_classifier/report.md`, `ITERATIONS.md` |
+| Training-run doctor (sim runs, image + features models, auto-fix loop) | dataset done (4,410 runs); models training | `datasets/doctor-runs/` |
 | Dataset cards, figures, demo GIF, README | not started | |
 
 ## Stretch list

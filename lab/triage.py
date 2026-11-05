@@ -60,13 +60,24 @@ def tail(log_text: str, n: int = TAIL_LINES) -> str:
     return "\n".join(last_attempt(log_text).splitlines()[-n:])
 
 
-def tokens(text: str) -> list[str]:
-    """Unigrams and bigrams of a normalised log tail. Shared by training and inference."""
-    text = _PATH.sub(" path ", text.lower())
+_CAMEL = re.compile(r"(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])")
+_EXC_LINE = re.compile(r"^[A-Za-z_][\w.]*(Error|Exception|Interrupt|Exit|Failure|Warning)?: |"
+                       r"^[A-Za-z_][\w.]*(Error|Exception)$|^Killed$|^=== exit ")
+
+
+def _words(text: str) -> list[str]:
+    text = _PATH.sub(" path ", text)
+    text = _CAMEL.sub(" ", text).replace("_", " ").lower()
     text = _HEX.sub(" hex ", text)
     text = _NUM.sub("0", text)
-    words = _TOKEN.findall(text)
-    return words + [f"{a} {b}" for a, b in zip(words, words[1:])]
+    return _TOKEN.findall(text)
+
+
+def error_region(text: str) -> str:
+    """The lines that say what went wrong: exception lines and the last few log lines."""
+    lines = [ln for ln in text.splitlines() if ln.strip()]
+    exc = [ln for ln in lines if _EXC_LINE.search(ln.strip())]
+    return "\n".join(exc[-3:] + lines[-4:])
 
 
 # ---- rules ---------------------------------------------------------------------------
@@ -91,6 +102,20 @@ RULES: list[tuple[str, re.Pattern[str]]] = [
                             r"ImportError|ModuleNotFoundError|SyntaxError|ZeroDivisionError|"
                             r"NotImplementedError|UnboundLocalError|RecursionError):", re.I)),
 ]
+
+
+def tokens(text: str) -> list[str]:
+    """Features of a log tail: uni/bigrams of the whole tail plus `e:`-prefixed words of the
+    error region. CamelCase and snake_case are split, so `OutOfMemoryError` and
+    `_ArrayMemoryError` share `memory error`. Regex rule hits in the error region are
+    added as `r:<label>` features, so the model learns when to trust a rule. Shared by
+    training and inference."""
+    words = _words(text)
+    err = _words(error_region(text))
+    region = error_region(text)
+    hits = [f"r:{label}" for label, rx in RULES if rx.search(region)]
+    return (words + [f"{a} {b}" for a, b in zip(words, words[1:])]
+            + [f"e:{w}" for w in err] + [f"e:{a} {b}" for a, b in zip(err, err[1:])] + hits * 3)
 
 
 class RuleClassifier:
@@ -126,6 +151,7 @@ class LinearClassifier:
         self.coef: list[list[float]] = spec["coef"]  # [n_classes][n_features]
         self.intercept: list[float] = spec["intercept"]
         self.threshold: float = float(spec.get("threshold", 0.5))
+        self.mode: str = spec.get("mode", "model")  # "model" or "hybrid" (rules on the error region win)
         self.meta: dict = spec.get("meta", {})
 
     @classmethod
@@ -150,6 +176,22 @@ class LinearClassifier:
         p = self.probabilities(text)
         label = max(p, key=p.get)
         return Diagnosis(label, p[label], "model", scores=p)
+
+
+_SIGNAL_EXIT = re.compile(r"^=== exit -\d+")
+
+
+def has_evidence(text: str) -> bool:
+    """An exception line, a signal exit or a rule hit. Without one, any label is a guess."""
+    for ln in text.splitlines():
+        ln = ln.strip()
+        if ln.startswith("=== "):
+            if _SIGNAL_EXIT.match(ln):
+                return True
+            continue
+        if _EXC_LINE.search(ln) or any(rx.search(ln) for _, rx in RULES):
+            return True
+    return False
 
 
 def _evidence(text: str, label: str) -> str:
@@ -184,11 +226,19 @@ class Triage:
 
     def classify(self, log_text: str) -> Diagnosis:
         text = tail(log_text)
+        if not has_evidence(text):
+            return Diagnosis(UNKNOWN, 0.0, "no-evidence", evidence=_evidence(text, UNKNOWN))
         if self.model is None:
             d = self.rules.predict(text)
         else:
             d = self.model.predict(text)
             d.evidence = _evidence(text, d.label)
+            if self.model.mode == "hybrid":
+                r = self.rules.predict(error_region(text))
+                if r.label != UNKNOWN:
+                    r.source = "rules" if r.label != d.label else "model+rules"
+                    r.scores = d.scores
+                    return r
         if d.label != UNKNOWN and d.confidence < self.threshold:
             d.scores = {**d.scores}
             d.evidence = f"low confidence {d.confidence:.2f} for {d.label}; " + d.evidence

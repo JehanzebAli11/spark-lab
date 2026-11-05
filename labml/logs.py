@@ -34,7 +34,7 @@ from pathlib import Path
 from lab.chaos import FAULTS, STYLES
 from lab.paths import lab_paths
 from lab.queue import Queue
-from lab.triage import CLASSES, UNKNOWN, LinearClassifier, RuleClassifier, tail, tokens
+from lab.triage import CLASSES, UNKNOWN, LinearClassifier, RuleClassifier, error_region, tail, tokens
 
 REPO = Path(__file__).resolve().parent.parent
 HELDOUT_VAL = ("oom.numpy_alloc", "disk_full.quota", "cuda_error.xid", "network.dns", "bad_data.csv_float",
@@ -164,13 +164,24 @@ def train(data: Path, model_out: Path, results: Path) -> dict:
         p = clf.predict_proba(vec.transform([r["text"] for r in rs]))
         return [dict(zip(clf.classes_, map(float, row))) for row in p]
 
-    # 1. pick C on in-distribution val + held-out-variant val (macro F1, no threshold)
+    # 1. pick C by leave-one-variant-out CV on train (plus heldout_val): rewards generalising
+    #    to fault phrasings the model has not seen, not memorising the ones it has.
+    variants = sorted({r["fault"] for r in by["train"]})
+    folds = [variants[i::5] for i in range(5)]
     sweep = {}
-    for c in (0.3, 1, 3, 10, 30):
+    for c in (0.1, 0.3, 1, 3, 10, 30):
+        gold, pred = [], []
+        for fold in folds:
+            tr = [r for r in by["train"] if r["fault"] not in fold]
+            te = [r for r in by["train"] if r["fault"] in fold]
+            vec, clf = fit(tr, c)
+            gold += [r["label"] for r in te]
+            pred += _with_threshold(probs(vec, clf, te), 0.0)
         vec, clf = fit(by["train"], c)
-        tune = by["val"] + by["heldout_val"]
-        pred = _with_threshold(probs(vec, clf, tune), 0.0)
-        sweep[c] = _metrics([r["label"] for r in tune], pred)["macro_f1"]
+        gold += [r["label"] for r in by["heldout_val"]]
+        pred += _with_threshold(probs(vec, clf, by["heldout_val"]), 0.0)
+        sweep[c] = _metrics(gold, pred)["macro_f1"]
+        print(f"C={c}: unseen-variant macro-F1 {sweep[c]:.3f}", flush=True)
     best_c = max(sweep, key=lambda c: (sweep[c], -c))
     vec, clf = fit(by["train"], best_c)
 
@@ -187,6 +198,15 @@ def train(data: Path, model_out: Path, results: Path) -> dict:
 
     # 3. evaluate rules, model (no threshold) and model + threshold on every split
     rules = RuleClassifier()
+
+    def hybrid(rs, p, t):
+        """A rule match in the error region wins; otherwise the model, escalating below t."""
+        out = []
+        for r, m in zip(rs, _with_threshold(p, t)):
+            rl = rules.predict(error_region(r["text"])).label
+            out.append(rl if rl != UNKNOWN else m)
+        return out
+
     report = {"C_sweep_macro_f1": sweep, "C": best_c, "threshold": threshold, "threshold_curve": curve,
               "n_features": len(vec.vocabulary_), "splits": {}}
     for s, rs in by.items():
@@ -196,10 +216,21 @@ def train(data: Path, model_out: Path, results: Path) -> dict:
             "rules": _metrics(gold, [rules.predict(r["text"]).label for r in rs]),
             "model": _metrics(gold, _with_threshold(p, 0.0)),
             "model+threshold": _metrics(gold, _with_threshold(p, threshold)),
+            "hybrid+threshold": _metrics(gold, hybrid(rs, p, threshold)),
         }
-    meta = {"trained_on": str(data), "n_train": len(by["train"]), "C": best_c,
+    # serving mode: whichever of model / hybrid makes fewer wrong actions on the tuning splits
+    def wrong(key):
+        return sum(report["splits"][s][key]["wrong_actions"] for s in ("val", "heldout_val"))
+
+    def esc(key):
+        return sum(report["splits"][s][key]["escalated"] for s in ("val", "heldout_val"))
+
+    mode = min(("model", "hybrid"), key=lambda m: (wrong(f"{m}+threshold"), esc(f"{m}+threshold")))
+    report["mode"] = mode
+    meta = {"trained_on": str(data), "n_train": len(by["train"]), "C": best_c, "mode": mode,
             "heldout_test_macro_f1": report["splits"]["heldout_test"]["model"]["macro_f1"]}
     spec = export(vec, clf, threshold, meta)
+    spec["mode"] = mode
 
     # 4. the exported stdlib model must agree with scikit-learn
     lin = LinearClassifier(spec)
@@ -270,16 +301,19 @@ def _misses(by, vec, clf, threshold, results: Path) -> None:
 
 def markdown(rep: dict) -> str:
     out = ["# Log classifier results", "",
-           f"TF-IDF ({rep['n_features']} uni/bigram features) + logistic regression, C={rep['C']}, "
+           f"TF-IDF ({rep['n_features']} features) + logistic regression, C={rep['C']} (leave-one-variant-out CV), "
            f"confidence threshold {rep['threshold']:.3f} (lowest with >= 98% precision on val + heldout_val).",
            "Rows below the threshold are escalated (incident file) instead of auto-fixed.", "",
            "| Split | n | Rules acc | Model acc | Model macro-F1 | +threshold: acts on | precision when acting "
-           "| wrong actions |", "| --- | --- | --- | --- | --- | --- | --- | --- |"]
+           "| wrong actions | hybrid: acts on | hybrid precision | hybrid wrong |",
+           "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
     for s, m in rep["splits"].items():
-        t = m["model+threshold"]
+        t, h = m["model+threshold"], m["hybrid+threshold"]
         out.append(f"| {s} | {m['model']['n']} | {m['rules']['accuracy']:.3f} | {m['model']['accuracy']:.3f} | "
                    f"{m['model']['macro_f1']:.3f} | {t['coverage']:.1%} | {t['precision_when_acting']:.3f} | "
-                   f"{t['wrong_actions']} |")
+                   f"{t['wrong_actions']} | {h['coverage']:.1%} | {h['precision_when_acting']:.3f} | "
+                   f"{h['wrong_actions']} |")
+    out += ["", f"Serving mode picked on val + heldout_val: **{rep['mode']}**."]
     out += ["", "Rules accuracy counts a rule miss (`unknown`) as wrong. `heldout_test` uses fault variants "
             "the model never saw, one per class.", "",
             "Per-class F1 on heldout_test (model, no threshold):", "",

@@ -503,6 +503,124 @@ def run(ctx):
 ''')
 
 
+
+# ---- more variants (v4: wider training variety; held-out variants untouched) --------------
+def _emulated(name: str, label: str, file: str, func: str, exc_module: str, exc_name: str, message: str,
+              base: str = "RuntimeError", pre: str = "") -> None:
+    src = f"""
+class {exc_name}({base}):
+    pass
+{exc_name}.__module__ = {exc_module!r}
+def {func}(*args):
+    {f'print({pre!r})' if pre else 'pass'}
+    raise {exc_name}({message!r})
+def run(ctx):
+    {func}(ctx)
+"""
+    fault(name, label, False, file, src)
+
+
+_emulated("oom.xla", "oom", "jax/_src/interpreters/pxla.py", "__call__", "jaxlib.xla_extension", "XlaRuntimeError",
+          "RESOURCE_EXHAUSTED: Out of memory while trying to allocate 8589934592 bytes.")
+_emulated("oom.tf", "oom", "tensorflow/python/eager/execute.py", "quick_execute",
+          "tensorflow.python.framework.errors_impl", "ResourceExhaustedError",
+          "OOM when allocating tensor with shape[64,4096,4096] and type float on /job:localhost/replica:0/task:0/"
+          "device:GPU:0 by allocator GPU_0_bfc")
+_emulated("oom.dataloader_killed", "oom", "torch/utils/data/_utils/signal_handling.py", "handler", "builtins",
+          "RuntimeError", "DataLoader worker (pid 40213) is killed by signal: Killed. ")
+_emulated("oom.ggml", "oom", "llama_cpp/llama.py", "__init__", "builtins", "ValueError",
+          "Failed to create llama_context", base="ValueError",
+          pre="ggml_backend_cuda_buffer_type_alloc_buffer: allocating 20480.00 MiB on device 0: cudaMalloc failed: "
+              "out of memory")
+_emulated("disk_full.safetensors", "disk_full", "safetensors/torch.py", "save_file", "safetensors_rust",
+          "SafetensorError", 'Error while serializing: IoError(Os { code: 28, kind: StorageFull, message: '
+          '"No space left on device" })', base="Exception")
+_emulated("disk_full.pip", "disk_full", "pip/_internal/commands/install.py", "run", "pip._internal.exceptions",
+          "InstallationError", "Could not install packages due to an OSError: [Errno 28] No space left on device",
+          base="Exception")
+_emulated("disk_full.docker", "disk_full", "lab_tools/containers.py", "pull", "docker.errors", "APIError",
+          "500 Server Error: Internal Server Error (\"failed to register layer: write /var/lib/docker/overlay2/"
+          "4f1c/diff/usr/lib/libcudnn.so.9: no space left on device\")", base="Exception")
+_emulated("disk_full.inductor", "disk_full", "torch/_inductor/codecache.py", "write_atomic", "builtins", "OSError",
+          "[Errno 28] No space left on device: '/tmp/torchinductor_lab/fx_graph_cache/ab/c2ab.py'", base="OSError")
+_emulated("cuda_error.no_kernel", "cuda_error", "torch/nn/modules/activation.py", "forward", "torch",
+          "AcceleratorError", "CUDA error: no kernel image is available for execution on the device" + _CUDA_TAIL)
+_emulated("cuda_error.ecc", "cuda_error", "torch/cuda/streams.py", "synchronize", "builtins", "RuntimeError",
+          "CUDA error: uncorrectable ECC error encountered" + _CUDA_TAIL)
+_emulated("cuda_error.triton", "cuda_error", "triton/compiler/compiler.py", "__getitem__", "builtins",
+          "RuntimeError", "Triton Error [CUDA]: an illegal memory access was encountered")
+_emulated("cuda_error.device_count", "cuda_error", "torch/cuda/__init__.py", "device_count", "builtins",
+          "RuntimeError", "Unexpected error from cudaGetDeviceCount(). Did you run some cuda functions before calling "
+          "NumCudaDevices() that might have already set an error? Error 804: forward compatibility was attempted on "
+          "non supported HW")
+_emulated("network.git", "network", "lab_tools/git.py", "pull", "subprocess", "CalledProcessError",
+          "fatal: unable to access 'https://github.com/JehanzebAli11/scam-radar.git/': Could not resolve host: "
+          "github.com", base="Exception")
+_emulated("network.aiohttp", "network", "aiohttp/connector.py", "_wrap_create_connection",
+          "aiohttp.client_exceptions", "ClientConnectorError",
+          "Cannot connect to host localhost:8000 ssl:default [Connect call failed ('127.0.0.1', 8000)]", base="OSError")
+_emulated("network.openai", "network", "openai/_base_client.py", "_retry_request", "openai", "APIConnectionError",
+          "Connection error.", base="Exception")
+fault("network.broken_pipe", "network", True, "lab_tools/teacher.py", """
+import socket
+def stream(sock, chunks):
+    for c in chunks:
+        sock.sendall(c)
+def run(ctx):
+    a, b = socket.socketpair()
+    b.close()
+    stream(a, [b"data: {}\\n\\n"] * 64)
+""")
+_emulated("bad_data.parquet", "bad_data", "pyarrow/parquet/core.py", "read_table", "pyarrow.lib", "ArrowInvalid",
+          "Parquet magic bytes not found in footer. Either the file is corrupted or this is not a parquet file.",
+          base="ValueError")
+_emulated("bad_data.image", "bad_data", "PIL/Image.py", "open", "PIL", "UnidentifiedImageError",
+          "cannot identify image file '/home/lab/data/frames/000123.jpg'", base="OSError")
+_emulated("bad_data.nan", "bad_data", "sklearn/utils/validation.py", "_assert_all_finite", "builtins", "ValueError",
+          "Input X contains NaN.", base="ValueError")
+_emulated("bad_data.schema", "bad_data", "datasets/builder.py", "_prepare_split_single", "datasets.exceptions",
+          "DatasetGenerationCastError", "An error occurred while generating the dataset\n\nAll the data files must "
+          "have the same columns, but at some point there are 1 new columns ({'lable'}) and 1 missing columns "
+          "({'label'}).", base="Exception")
+_emulated("flaky.busy", "flaky", "lab_tools/io.py", "remove_cache", "builtins", "OSError",
+          "[Errno 16] Device or resource busy: '/home/lab/.cache/torch/kernels'", base="OSError")
+_emulated("flaky.filelock", "flaky", "filelock/_api.py", "acquire", "filelock", "Timeout",
+          "The file lock '/home/lab/.cache/huggingface/hub/.locks/models--google--gemma/abc.lock' could not be "
+          "acquired.", base="TimeoutError")
+_emulated("flaky.rendezvous", "flaky", "torch/distributed/elastic/rendezvous/api.py", "next_rendezvous",
+          "torch.distributed", "DistStoreError", "Timed out after 901 seconds waiting for clients. 1/2 clients joined.")
+fault("flaky.again", "flaky", True, "lab_tools/pipes.py", """
+import errno
+def read_nowait(fd):
+    return os.read(fd, 1024)
+def run(ctx):
+    r, w = os.pipe()
+    os.set_blocking(r, False)
+    read_nowait(r)
+""")
+fault("code_bug.kwarg", "code_bug", True, "train/optim.py", """
+def make_optimizer(params, lr, betas=(0.9, 0.999)):
+    return (params, lr, betas)
+def run(ctx):
+    make_optimizer([], learning_rate=3e-4)
+""")
+fault("code_bug.unpack", "code_bug", True, "train/data.py", """
+def split_pair(row):
+    text, label = row
+    return text, label
+def run(ctx):
+    split_pair(("hello", 1, "extra"))
+""")
+fault("code_bug.notimpl", "code_bug", True, "train/model.py", """
+class Head:
+    def forward(self, x):
+        raise NotImplementedError
+def run(ctx):
+    Head().forward(None)
+""")
+_emulated("code_bug.matmul_shape", "code_bug", "torch/nn/modules/linear.py", "forward", "builtins", "RuntimeError",
+          "mat1 and mat2 shapes cannot be multiplied (64x768 and 512x10)")
+
 # ---- log styles --------------------------------------------------------------------------
 def _bar(rng: random.Random, i: int, n: int) -> str:
     pct = int(100 * i / n)

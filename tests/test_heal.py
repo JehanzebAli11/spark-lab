@@ -154,11 +154,12 @@ def test_rules_pick_the_last_matching_line():
 
 
 def test_threshold_escalates_low_confidence():
-    spec = {"classes": ["code_bug", "oom"], "vocab": {"memoryerror": 0}, "idf": [1.0],
+    spec = {"classes": ["code_bug", "oom"], "vocab": {"e:memory": 0}, "idf": [1.0],
             "coef": [[-2.0], [2.0]], "intercept": [0.0, 0.0], "threshold": 0.9}
     tri = Triage(LinearClassifier(spec))
     assert tri.classify("MemoryError").label == "oom"
-    assert tri.classify("something else").label == UNKNOWN  # 50/50 -> escalate
+    assert tri.classify("ValueError: something else").label == UNKNOWN  # 50/50 -> escalate
+    assert tri.classify("no traceback here").source == "no-evidence"
 
 
 @pytest.mark.skipif(not DEFAULT_MODEL.exists(), reason="model not trained yet")
