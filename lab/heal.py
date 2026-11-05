@@ -18,6 +18,7 @@ retries for unknown failures come from the job's `retries`. Every decision is ap
 
 from __future__ import annotations
 
+import os
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -52,6 +53,16 @@ NEXT_STEPS = {
 }
 
 
+def default_triage() -> Triage:
+    """The server named by LAB_TRIAGE_URL if set (falls back locally), else the local model."""
+    url = os.environ.get("LAB_TRIAGE_URL", "").strip()
+    if url:
+        from .serve import RemoteTriage
+
+        return RemoteTriage(url)
+    return Triage.default()
+
+
 @dataclass
 class Decision:
     action: str          # halve_batch | prune_retry | backoff_retry | cooldown_retry | retry | incident | give_up
@@ -70,7 +81,7 @@ class Healer:
         cooldown_s: float = 60.0,
         prune_keep: int = 2,
     ):
-        self.triage = triage or Triage.default()
+        self.triage = triage or default_triage()
         self.sleep = sleep
         self.backoff_base_s = backoff_base_s
         self.cooldown_s = cooldown_s

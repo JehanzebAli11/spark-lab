@@ -4,7 +4,7 @@
 - **Class:** cuda_error (confidence 1.00, model)
 - **Why stopped:** cuda_error fix already tried 1 time(s)
 - **Exit code:** 1 after 2 attempt(s)
-- **Log:** `logs/014-20261105T072355055506-cricket-pose-train.log`
+- **Log:** `logs/014-20261105T075933270656-cricket-pose-train.log`
 - **Evidence:** `torch.AcceleratorError: CUDA error: an illegal memory access was encountered`
 
 ## Next steps
@@ -13,8 +13,8 @@ The CUDA error came back after a cool-down. Check `nvidia-smi -q`, dmesg for Xid
 
 ## Healing so far
 
-- attempt 1: cuda_error (0.99) -> cooldown_retry: waited 60 s
-- attempt 2: cuda_error (0.99) -> incident: cuda_error fix already tried 1 time(s)
+- attempt 1: cuda_error (1.00) -> cooldown_retry: waited 60 s
+- attempt 2: cuda_error (1.00) -> incident: cuda_error fix already tried 1 time(s)
 
 ## Log tail
 
@@ -26,7 +26,7 @@ Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
 === exit 1
 === heal: cuda_error (1.00, model) -> cooldown_retry: waited 60 s
 
-=== 2026-11-05T07:23:56+00:00 attempt 2 :: /usr/local/bin/python -m lab.chaos --fault cuda_error.illegal_access --seed 4 --fail-attempts 5
+=== 2026-11-05T07:59:34+00:00 attempt 2 :: /usr/local/bin/python -m lab.chaos --fault cuda_error.illegal_access --seed 4 --fail-attempts 5
 python 3.13.18 | job cricket-pose-train | attempt 2 | batch_size 64
 Epoch 0:   1%|          | 2/195 [00:02<03:00, 4.13it/s] loss=2.527 v_num=4
 Epoch 0:   2%|          | 4/195 [00:04<03:00, 2.41it/s] loss=2.518 v_num=5

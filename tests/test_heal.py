@@ -170,3 +170,31 @@ def test_shipped_model_loads_and_classifies_real_chaos_logs(lab, waits):
                                         env={"BATCH_SIZE": "8"}), triage=tri)
     assert job.heal_log[0]["class"] == "oom" and job.heal_log[0]["source"] == "model"
     assert json.loads(DEFAULT_MODEL.read_text())["classes"] == sorted(CLASSES)
+
+
+def test_triage_server_and_remote_client(tmp_path):
+    import threading
+
+    from lab.serve import RemoteTriage, make_server
+
+    srv = make_server("127.0.0.1", 0, Triage(None))
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    url = f"http://127.0.0.1:{srv.server_address[1]}"
+    try:
+        remote = RemoteTriage(url, fallback=Triage(None))
+        d = remote.classify("step 1\nOSError: [Errno 28] No space left on device\n=== exit 1")
+        assert d.label == "disk_full" and d.source == "remote:rules"
+    finally:
+        srv.shutdown()
+    down = RemoteTriage(url, fallback=Triage(None), timeout=0.5)
+    d = down.classify("TypeError: bad\n=== exit 1")
+    assert d.label == "code_bug" and "unreachable" in d.source
+
+
+def test_cli_classify(tmp_path, capsys):
+    from lab.cli import main
+
+    p = tmp_path / "x.log"
+    p.write_text("Traceback\nsocket.gaierror: [Errno -2] Name or service not known\n=== exit 1\n")
+    assert main(["classify", str(p)]) == 0
+    assert json.loads(capsys.readouterr().out)["label"] == "network"

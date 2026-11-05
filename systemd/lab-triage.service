@@ -1,0 +1,19 @@
+# Failure classifier over HTTP (lab/serve.py). Install like lab-worker.service, then:
+#   systemctl --user enable --now lab-triage.service
+#   curl -s localhost:8040/health
+# Other machines on the tailnet: set LAB_TRIAGE_URL=http://spark-1:8040 and bind --host to the
+# Tailscale IP instead of 127.0.0.1 (there is no authentication; never bind 0.0.0.0).
+[Unit]
+Description=spark-lab failure classifier (triage) server
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/lab/spark-lab
+EnvironmentFile=-%h/.config/spark-lab.env
+ExecStart=/usr/bin/env python3 -m lab serve-triage --host 127.0.0.1 --port 8040
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target

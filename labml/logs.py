@@ -227,12 +227,16 @@ def train(data: Path, model_out: Path, results: Path) -> dict:
 
     mode = min(("model", "hybrid"), key=lambda m: (wrong(f"{m}+threshold"), esc(f"{m}+threshold")))
     report["mode"] = mode
-    meta = {"trained_on": str(data), "n_train": len(by["train"]), "C": best_c, "mode": mode,
-            "heldout_test_macro_f1": report["splits"]["heldout_test"]["model"]["macro_f1"]}
+    # 4. ship a model refit on every row (all 75 variants) with the chosen C and threshold.
+    #    The metrics above describe the evaluation model; the shipped one has seen more phrasings.
+    eval_vec, eval_clf = vec, clf
+    vec, clf = fit(rows, best_c)
+    meta = {"trained_on": "datasets/chaos-logs/logs.jsonl.gz (all splits)", "n_train": len(rows), "C": best_c,
+            "mode": mode, "eval_heldout_test_macro_f1": report["splits"]["heldout_test"]["model"]["macro_f1"]}
     spec = export(vec, clf, threshold, meta)
     spec["mode"] = mode
 
-    # 4. the exported stdlib model must agree with scikit-learn
+    # 5. the exported stdlib model must agree with scikit-learn
     lin = LinearClassifier(spec)
     check = by["heldout_test"] + by["test"]
     sk = probs(vec, clf, check)
@@ -243,8 +247,8 @@ def train(data: Path, model_out: Path, results: Path) -> dict:
     model_out.parent.mkdir(parents=True, exist_ok=True)
     model_out.write_text(json.dumps(spec, separators=(",", ":")), encoding="utf-8")
     (results / "metrics.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
-    _confusions(rows, by, vec, clf, threshold, results)
-    _misses(by, vec, clf, threshold, results)
+    _confusions(rows, by, eval_vec, eval_clf, threshold, results)
+    _misses(by, eval_vec, eval_clf, threshold, results)
     (results / "report.md").write_text(markdown(report), encoding="utf-8")
     print(markdown(report))
     return report
@@ -303,7 +307,9 @@ def markdown(rep: dict) -> str:
     out = ["# Log classifier results", "",
            f"TF-IDF ({rep['n_features']} features) + logistic regression, C={rep['C']} (leave-one-variant-out CV), "
            f"confidence threshold {rep['threshold']:.3f} (lowest with >= 98% precision on val + heldout_val).",
-           "Rows below the threshold are escalated (incident file) instead of auto-fixed.", "",
+           "Rows below the threshold are escalated (incident file) instead of auto-fixed.",
+           "The numbers are for the evaluation model (trained on `train` only). The shipped model "
+           "(`lab/models/log_classifier.json`) is refit on all splits with the same C and threshold.", "",
            "| Split | n | Rules acc | Model acc | Model macro-F1 | +threshold: acts on | precision when acting "
            "| wrong actions | hybrid: acts on | hybrid precision | hybrid wrong |",
            "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"]

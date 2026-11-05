@@ -14,7 +14,8 @@ runs that came out fine carry no symptom to diagnose; they are counted, not trai
 Evaluation: test (unseen seeds), heldout_task (unseen task family), and leave-one-cause-out
 open-set runs: train without cause C and check whether C's runs get escalated (low
 confidence) rather than confidently mislabelled. Threshold per doctor: lowest confidence
-with >= 90% precision-when-acting on val.
+with >= 98% precision-when-acting on val. The features doctor also escalates runs that a
+kNN novelty check (`Novelty`) says look unlike any training run.
 """
 
 from __future__ import annotations
@@ -105,7 +106,7 @@ class CNN:
                 loss.backward()
                 opt.step()
                 sched.step()
-                tot += float(loss) * len(b)
+                tot += loss.item() * len(b)
             if xval is not None:
                 acc = float(np.mean(self.classes_[self.predict_proba(xval).argmax(1)] == yval))
                 if acc > best_acc:
@@ -147,7 +148,33 @@ def metrics(gold, pred, classes) -> dict:
             "per_class": per}
 
 
-def threshold_for(probs: np.ndarray, gold: np.ndarray, classes: np.ndarray, target: float = 0.9) -> float:
+class Novelty:
+    """Mean distance to the 10 nearest training runs in standardised feature space.
+
+    Gradient boosting is confidently wrong on causes it never saw; this flags runs that do
+    not look like anything in training. Limit = 97.5th percentile of val distances.
+    """
+
+    def __init__(self, k: int = 10):
+        self.k = k
+
+    def fit(self, x: np.ndarray, x_val: np.ndarray) -> Novelty:
+        from sklearn.neighbors import NearestNeighbors
+
+        self.mu, self.sd = x.mean(0), x.std(0) + 1e-6
+        self.nn = NearestNeighbors(n_neighbors=self.k).fit((x - self.mu) / self.sd)
+        self.limit = float(np.percentile(self.score(x_val), 97.5))
+        return self
+
+    def score(self, x: np.ndarray) -> np.ndarray:
+        d, _ = self.nn.kneighbors((x - self.mu) / self.sd)
+        return d.mean(1)
+
+    def novel(self, x: np.ndarray) -> np.ndarray:
+        return self.score(x) > self.limit
+
+
+def threshold_for(probs: np.ndarray, gold: np.ndarray, classes: np.ndarray, target: float = 0.98) -> float:
     conf, lab = probs.max(1), classes[probs.argmax(1)]
     for t in np.arange(0.2, 0.99, 0.01):
         keep = conf >= t
@@ -174,8 +201,8 @@ def train_all(rows, imgs, results: Path = RESULTS, epochs: int = 25) -> dict:
     xf, xc = matrix(rows, ALL), matrix(rows, CURVE)
     S = {s: np.where(ok & (split == s))[0] for s in SPLITS}
     tr, va = S["train"], S["val"]
-    report: dict = {"counts": {s: dict(Counter(y[i])) for s, i in S.items()},
-                    "injected_but_unharmed": dict(Counter(y[~ok & (y != "healthy")])),
+    report: dict = {"counts": {s: {str(k): v for k, v in Counter(y[i]).items()} for s, i in S.items()},
+                    "injected_but_unharmed": {str(k): v for k, v in Counter(y[~ok & (y != "healthy")]).items()},
                     "doctors": {}}
 
     print("fitting features + curves GBMs", flush=True)
@@ -193,6 +220,7 @@ def train_all(rows, imgs, results: Path = RESULTS, epochs: int = 25) -> dict:
             return cnn.predict_proba(imgs[idx])
         return (gbm_f.predict_proba(xf[idx]) + cnn.predict_proba(imgs[idx])) / 2
 
+    nov = Novelty().fit(xf[tr], xf[va])
     classes = np.array(gbm_f.classes_)
     assert list(classes) == list(cnn.classes_) == list(gbm_c.classes_)
     for name in ("image", "curves", "features", "ensemble"):
@@ -202,24 +230,35 @@ def train_all(rows, imgs, results: Path = RESULTS, epochs: int = 25) -> dict:
             p = probs_of(name, S[s])
             rep[s] = {"raw": metrics(y[S[s]], label(p, classes), CAUSES),
                       "thresholded": metrics(y[S[s]], label(p, classes, t), CAUSES)}
+        if name == "features":
+            for s in ("test", "heldout_task"):
+                p = probs_of(name, S[s])
+                lab = label(p, classes, t)
+                lab[nov.novel(xf[S[s]])] = "unknown"
+                rep[s]["thresholded+novelty"] = metrics(y[S[s]], lab, CAUSES)
         report["doctors"][name] = rep
         print(f"{name:9s} test acc {rep['test']['raw']['accuracy']:.3f}  heldout_task "
               f"{rep['heldout_task']['raw']['accuracy']:.3f}  threshold {t}", flush=True)
 
     # leave-one-cause-out open set (features GBM; cheap)
     print("open-set: leave one cause out", flush=True)
-    t_f = report["doctors"]["features"]["threshold"]
     open_set = {}
     for c in CAUSES:
         if c == "healthy":
             continue
         keep = tr[y[tr] != c]
         m = fit_gbm(xf[keep], y[keep])
+        val_keep = va[y[va] != c]
+        t_c = threshold_for(m.predict_proba(xf[val_keep]), y[val_keep], np.array(m.classes_))
+        nv = Novelty().fit(xf[keep], xf[val_keep])
         test_c = np.where(ok & (y == c) & np.isin(split, ["test", "heldout_task"]))[0]
         p = m.predict_proba(xf[test_c])
-        lab = label(p, np.array(m.classes_), t_f)
+        lab = label(p, np.array(m.classes_), t_c)
+        by_conf = float(np.mean(lab == "unknown"))
+        lab[nv.novel(xf[test_c])] = "unknown"
         cnt = Counter(lab)
         open_set[c] = {"n": int(len(test_c)), "escalated": round(cnt.get("unknown", 0) / max(1, len(test_c)), 3),
+                       "escalated_by_confidence_only": round(by_conf, 3), "threshold": t_c,
                        "called_healthy": round(cnt.get("healthy", 0) / max(1, len(test_c)), 3),
                        "most_common_wrong": [(k, v) for k, v in cnt.most_common() if k != "unknown"][:2]}
     report["open_set"] = open_set
@@ -231,7 +270,7 @@ def train_all(rows, imgs, results: Path = RESULTS, epochs: int = 25) -> dict:
     _confusion(y[S["heldout_task"]], label(probs_of("features", S["heldout_task"]), classes),
                results / "confusion_features_heldout_task.png", "features doctor, held-out task family")
     with open(MODELS / "doctors.pkl", "wb") as fh:
-        pickle.dump({"features": gbm_f, "curves": gbm_c, "classes": classes,
+        pickle.dump({"features": gbm_f, "curves": gbm_c, "classes": classes, "novelty": nov,
                      "thresholds": {k: v["threshold"] for k, v in report["doctors"].items()}}, fh)
     cnn.torch.save(cnn.net.state_dict(), MODELS / "cnn.pt")
     (results / "metrics.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
@@ -286,11 +325,18 @@ def markdown(rep: dict) -> str:
                                              for d in rep["doctors"].values()) + " |")
     out += ["", "## Unseen causes (leave-one-cause-out, features doctor)", "",
             "Trained without the cause, tested on its runs: does the doctor escalate or guess?", "",
-            "| Held-out cause | n | Escalated | Called healthy | Most common wrong labels |",
-            "| --- | --- | --- | --- | --- |"]
+            "| Held-out cause | n | Escalated (confidence only) | Escalated (+ novelty) | Called healthy "
+            "| Most common wrong labels |", "| --- | --- | --- | --- | --- | --- |"]
     for c, v in rep["open_set"].items():
         wrong = ", ".join(f"{k} ({n})" for k, n in v["most_common_wrong"]) or "-"
-        out.append(f"| {c} | {v['n']} | {v['escalated']:.1%} | {v['called_healthy']:.1%} | {wrong} |")
+        out.append(f"| {c} | {v['n']} | {v['escalated_by_confidence_only']:.1%} | {v['escalated']:.1%} | "
+                   f"{v['called_healthy']:.1%} | {wrong} |")
+    f = rep["doctors"]["features"]
+    out += ["", "Features doctor with threshold + novelty: test acts on "
+            f"{f['test']['thresholded+novelty']['coverage']:.1%} at precision "
+            f"{f['test']['thresholded+novelty']['precision_when_acting']:.3f}; held-out task acts on "
+            f"{f['heldout_task']['thresholded+novelty']['coverage']:.1%} at precision "
+            f"{f['heldout_task']['thresholded+novelty']['precision_when_acting']:.3f}."]
     out += ["", "Rows per split: " + "; ".join(f"{s}: {sum(c.values())}" for s, c in rep["counts"].items()), ""]
     return "\n".join(out)
 
@@ -305,4 +351,7 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    # run from the imported module so pickled classes (Novelty) resolve as labml.doctor.models
+    from labml.doctor import models as _models
+
+    raise SystemExit(_models.main())

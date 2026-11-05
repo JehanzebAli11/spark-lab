@@ -54,7 +54,10 @@ def _init() -> None:
 
 def diagnose(row: dict, doctor: str) -> tuple[str, float]:
     classes = _STATE["classes"]
-    p = _STATE["features"].predict_proba(matrix([row], ALL))[0]
+    x = matrix([row], ALL)
+    if _STATE["novelty"].novel(x)[0]:
+        return "novel", 0.0
+    p = _STATE["features"].predict_proba(x)[0]
     if doctor == "ensemble":
         img = to_array(png_bytes(row["series"]))[None]
         p = (p + _STATE["cnn"].predict_proba(img)[0]) / 2

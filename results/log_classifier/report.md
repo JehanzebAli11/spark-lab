@@ -2,6 +2,7 @@
 
 TF-IDF (4630 features) + logistic regression, C=30 (leave-one-variant-out CV), confidence threshold 0.550 (lowest with >= 98% precision on val + heldout_val).
 Rows below the threshold are escalated (incident file) instead of auto-fixed.
+The numbers are for the evaluation model (trained on `train` only). The shipped model (`lab/models/log_classifier.json`) is refit on all splits with the same C and threshold.
 
 | Split | n | Rules acc | Model acc | Model macro-F1 | +threshold: acts on | precision when acting | wrong actions | hybrid: acts on | hybrid precision | hybrid wrong |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |

@@ -1240,5 +1240,5 @@
     }
   },
   "mode": "model",
-  "export_max_prob_diff": 4.324465574301328e-06
+  "export_max_prob_diff": 1.0647335010327552e-06
 }
