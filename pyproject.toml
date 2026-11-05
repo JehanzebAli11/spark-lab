@@ -9,12 +9,17 @@ dependencies = []
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff>=0.6"]
+# Offline training and evaluation only (labml/). The queue itself stays standard library.
+ml = ["numpy>=1.26", "scikit-learn>=1.4", "matplotlib>=3.8", "pillow>=10", "torch>=2.2"]
 
 [project.scripts]
 lab = "lab.cli:main"
 
 [tool.setuptools]
-packages = ["lab"]
+packages = ["lab", "labml", "labml.doctor"]
+
+[tool.setuptools.package-data]
+lab = ["models/*.json"]
 
 [tool.ruff]
 line-length = 120
@@ -24,4 +29,4 @@ testpaths = ["tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM", "DTZ", "BLE"]
-ignore = ["DTZ005"]   # naive now() is fine where we immediately call .astimezone()
+ignore = ["DTZ005", "B905"]   # naive now() then .astimezone(); zip() lengths are equal by construction
