@@ -330,6 +330,46 @@ def markdown(rep: dict) -> str:
     return "\n".join(out)
 
 
+def collect(lab_root: Path, out: Path) -> list[dict]:
+    """Failed queue jobs that carry LAB_CHAOS_LABEL in env -> labelled rows (split `spark_real`)."""
+    paths = lab_paths(lab_root)
+    rows = []
+    for p in sorted(paths.failed.glob("*.json")):
+        job = json.loads(p.read_text(encoding="utf-8"))
+        label = job.get("env", {}).get("LAB_CHAOS_LABEL")
+        if not label or not job.get("log"):
+            continue
+        text = (paths.root / job["log"]).read_text(encoding="utf-8", errors="replace")
+        rows.append({"id": job["name"], "fault": job["env"].get("LAB_CHAOS_FAULT", job["name"]), "label": label,
+                     "real": True, "style": "gpu", "seed": 0, "split": "spark_real",
+                     "returncode": job.get("returncode"), "text": scrub(tail(text), str(paths.root))})
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with gzip.open(out, "wt", encoding="utf-8") as fh:
+        for r in rows:
+            fh.write(json.dumps(r, ensure_ascii=False) + "\n")
+    print(f"collected {len(rows)} labelled failures -> {out}")
+    return rows
+
+
+def eval_real(data: Path, model: Path, results: Path) -> dict:
+    """Score the shipped classifier (as the healer runs it) on real failures."""
+    from lab.triage import Triage
+
+    tri = Triage(LinearClassifier.load(model))
+    rows = load(data)
+    preds = [tri.classify(r["text"]) for r in rows]
+    m = _metrics([r["label"] for r in rows], [d.label for d in preds])
+    lines = ["# Shipped classifier on real failures", "", f"Data: `{data}`", "",
+             f"{m['n']} rows: accuracy {m['accuracy']:.3f}, acts on {m['coverage']:.1%}, precision when acting "
+             f"{m['precision_when_acting']:.3f}, wrong actions {m['wrong_actions']}.", "",
+             "| Job | Label | Diagnosis | Confidence |", "| --- | --- | --- | --- |"]
+    lines += [f"| {r['id']} | {r['label']} | {d.label} | {d.confidence:.2f} |" for r, d in zip(rows, preds)]
+    results.mkdir(parents=True, exist_ok=True)
+    (results / "real_eval.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print("\n".join(lines))
+    return m
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="labml.logs")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -341,9 +381,20 @@ def main(argv: list[str] | None = None) -> int:
     t.add_argument("--data", type=Path, default=REPO / "datasets/chaos-logs/logs.jsonl.gz")
     t.add_argument("--model-out", type=Path, default=REPO / "lab/models/log_classifier.json")
     t.add_argument("--results", type=Path, default=REPO / "results/log_classifier")
+    c = sub.add_parser("collect", help="labelled rows from failed chaos jobs in a lab root")
+    c.add_argument("--lab-root", type=Path, default=REPO)
+    c.add_argument("--out", type=Path, default=REPO / "datasets/chaos-logs/spark_real.jsonl.gz")
+    e = sub.add_parser("eval-real", help="score the shipped model on collected real failures")
+    e.add_argument("--data", type=Path, default=REPO / "datasets/chaos-logs/spark_real.jsonl.gz")
+    e.add_argument("--model", type=Path, default=REPO / "lab/models/log_classifier.json")
+    e.add_argument("--results", type=Path, default=REPO / "results/log_classifier")
     a = ap.parse_args(argv)
     if a.cmd == "build":
         build(a.seeds, a.out, a.procs)
+    elif a.cmd == "collect":
+        collect(a.lab_root, a.out)
+    elif a.cmd == "eval-real":
+        eval_real(a.data, a.model, a.results)
     else:
         train(a.data, a.model_out, a.results)
     return 0

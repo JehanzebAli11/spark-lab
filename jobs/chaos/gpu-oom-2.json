@@ -1,0 +1,21 @@
+{
+  "name": "chaos-gpu-oom-2",
+  "cmd": [
+    "../.venv-ml/bin/python",
+    "-m",
+    "labml.chaos_gpu",
+    "--fault",
+    "oom",
+    "--seed",
+    "2"
+  ],
+  "priority": 85,
+  "timeout_min": 5,
+  "retries": 0,
+  "heal": false,
+  "notify": false,
+  "env": {
+    "LAB_CHAOS_LABEL": "oom",
+    "LAB_CHAOS_FAULT": "gpu.oom"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "heal-network",
+  "cmd": [
+    "python3",
+    "-m",
+    "lab.chaos",
+    "--fault",
+    "network.refused",
+    "--fail-attempts",
+    "2"
+  ],
+  "priority": 86,
+  "timeout_min": 5,
+  "notify": false,
+  "env": {}
+}

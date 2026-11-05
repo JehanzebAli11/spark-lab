@@ -33,7 +33,7 @@ NIGHT = [
     ("cricket-pose-train", "cuda_error.illegal_access", {}, ["--fail-attempts", "5"]),
     ("scam-radar-eval", "code_bug.name", {"retries": 2}, []),
     ("sms-import", "bad_data.jsonl", {"retries": 2}, []),
-    ("kv-cache-probe", "oom.vllm_kv", {}, []),     # a fault variant the classifier never saw
+    ("kv-cache-probe", "oom.vllm_kv", {}, []),     # held out when evaluating; the shipped model has seen it
 ]
 
 

@@ -1,0 +1,15 @@
+{
+  "name": "heal-code-bug",
+  "cmd": [
+    "python3",
+    "-m",
+    "lab.chaos",
+    "--fault",
+    "code_bug.name"
+  ],
+  "priority": 86,
+  "timeout_min": 5,
+  "notify": false,
+  "env": {},
+  "retries": 2
+}
